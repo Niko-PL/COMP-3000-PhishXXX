@@ -12,7 +12,12 @@
       <button type="button" class="settings-button" id="security_button" aria-expanded="false">&#128737;</button>
     </div>
 
-    
+    <div id="test_section" class="test-section-hidden" aria-hidden="true">
+      <h5>Test Section</h5>
+      <input type="text" id="URL_input" placeholder="example https://example.com">
+      <button type="button" id="URL_check_button" aria-expanded="false">Check</button>
+    </div>
+
     <div id="security_section" class="security-section-hidden" aria-hidden="true">
       <h5>Security Settings</h5>
       <label>Highlight on Open</label>
@@ -54,6 +59,11 @@
       <label> Sheet ID:</label>
       <input type="text" id="sheetId" placeholder="Enter Google Sheet ID"/>
 
+
+      <label> WHOIS JSON API Key:</label>
+      <input type="text" id="WHOISJSON_API_KEY" placeholder="Enter WHOIS JSON API Key"/>
+      <button type="button" id="WHOISJSON_API_KEY_button" aria-expanded="false">Get API Key</button>
+
       <label>Sheet Name:</label>
       <input type="text" id="sheet_name" placeholder="Enter sheet name">
       
@@ -79,6 +89,8 @@
     <button id="run_highlighter">Highlight Words</button>
     <button id="run_getHTML">RUN_GET_HTML</button>
     <p id="status"></p>
+    <script src="SECRETS.js"></script>
+    <script src="check_url.js"></script>
     <script src="HTML_Controler.js"></script>
   </body>
 </html>

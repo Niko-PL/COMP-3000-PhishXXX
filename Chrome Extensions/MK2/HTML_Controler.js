@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         const Use_AI = document.getElementById("use_ai");
 
 
+        // test section data loaded
+        const URL_Input = document.getElementById("URL_input");
+        const URL_Check_Button = document.getElementById("URL_check_button");
+        const Test_Section = document.getElementById("test_section");
+
+        const WHOISJSON_API_KEY = document.getElementById("WHOISJSON_API_KEY");
+        const WHOISJSON_API_KEY_Button = document.getElementById("WHOISJSON_API_KEY_button");
+
+
 
 
     //settings cookies  contorleer
@@ -54,7 +63,9 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
             Highlight_On_Open: Highlight_On_Open.checked,
             Improve_Firebase: Improve_Firebase.checked,
             Use_AI: Use_AI.checked,
+            WHOISJSON_API_KEY: WHOISJSON_API_KEY.value,
         };
+
         try {
             chrome.storage.sync.set(Settings_Cookie);
             console.log("Settings saved");
@@ -77,7 +88,8 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
             Highlight_On_Open.checked = Cookie_Data.Highlight_On_Open || false;
             Improve_Firebase.checked = Cookie_Data.Improve_Firebase || false;
             Use_AI.checked = Cookie_Data.Use_AI || false;
-
+            WHOISJSON_API_KEY.value = Cookie_Data.WHOISJSON_API_KEY || "";
+            console.log("WHOISJSON_API_KEY Loaded fro mcookies:", WHOISJSON_API_KEY.value);
         });
     }
 
@@ -93,8 +105,7 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
    
     if (!Highlight_On_Open) {
-        console.error("Highlight on open checkbox not found!");
-        return;
+        console.warn("Highlight on open checkbox not found!");
     }
     else{
         console.log("Highlight on open checkbox found");
@@ -176,7 +187,36 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
     };
    
+    //test section UI contorleer
+    if (!Test_Section || !URL_Input || !URL_Check_Button) { //if test section or url input or url check button not found, exit
+        console.error("Test section or url input or url check button not found!");
+        return;
+    }
+    else{
+        console.log("Test section and url input and url check button found");
+    }
 
+    const Foward_URL = () => {
+        if (!URL_Input.value) 
+        {
+            Update_Status("Please enter a URL", true, true);
+            return;
+        }
+        else 
+        {
+            Update_Status("URL: " + URL_Input.value, true, true);
+            try {
+                console.log("Sending URL to Check_URL " + URL_Input.value);
+                Check_URL(URL_Input.value, WHOISJSON_API_KEY.value); //send the API key to the Check_URL function
+
+            }
+            catch (error) {
+                console.error("Check_URL is not available error:" +error);
+                Update_Status("URL checker not loaded", true, true);
+                return;
+            }
+        }
+    };
 
 
 
@@ -349,6 +389,10 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     
     Settings_Button.addEventListener("click", Settings_Expander); //add event listener to the settings button (little cog)
     Security_Button.addEventListener("click", Security_Expander); //add event listener to the security button (little shield)
+    
+    URL_Check_Button.addEventListener("click", Foward_URL);
+
+
 
     Sheet_ID.addEventListener("input", Save_Settings);
     Sheet_Name.addEventListener("input", Save_Settings);
@@ -357,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     Highlight_On_Open.addEventListener("change", Save_Settings);
     Improve_Firebase.addEventListener("change", Save_Settings);
     Use_AI.addEventListener("change", Save_Settings);
+    WHOISJSON_API_KEY_Button.addEventListener("click", Save_Settings);
 
     console.log("Buttons and status loaded and event listeners added");
     Load_Settings();
