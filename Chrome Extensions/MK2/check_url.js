@@ -1,12 +1,11 @@
 
 console.log("URL checker Loaded");
 
-const Bad_Endings = [".exe", ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".iso",".dmg", ".pkg", ".deb", ".rpm", ".msi", ".py",".bat", ".cmd", ".com", ".ps1", ".vbs", ".js", ".scr", ".pif", ".reg",".sh", ".bin", ".run", ".pl", ".cgi",".app", ".command", ".jar", ".pyc", ".apk", ".appimage", ".wsf", ".gadget"
-];
+const Bad_Endings = [".exe", ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".iso",".dmg", ".pkg", ".deb", ".rpm", ".msi", ".py",".bat", ".cmd", ".com", ".ps1", ".vbs", ".js", ".scr", ".pif", ".reg",".sh", ".bin", ".run", ".pl", ".cgi",".app", ".command", ".jar", ".pyc", ".apk", ".appimage", ".wsf", ".gadget"];
 
 
 const GDPR_Country_TLDs = [".at",".be",".bg",".hr",".cy",".cz",".dk",".ee",".fi",".fr",".de",".gr",".hu",".ie",".it",".lv",".lt",".lu",".mt",".nl",".pl",".pt",".ro",".sk",".si",".es",".se",".is",".li",".no",".eu",".uk",".com",".org",".edu",".tv"];
-//and tuvalu country for 
+//and tuvalu country for tv as in televesion
 
 const Risk_Classification = { 1: "No Risk", 2: "Low Risk", 3: "Medium Risk", 4: "High Risk", 5: "Very High Risk" };
 
@@ -140,7 +139,6 @@ const Analyze_Age = (data) => {  //low age means high risk
 }
 
 const Analyze_Expiration_Date = (data) => {  //expired means no good
-    
     const expiration_date = data?.expires || null;
 
     if (!expiration_date) {
@@ -206,20 +204,33 @@ const Get_WHOIS_Data = async (URL_new, WHOISJSON_API_KEY) => {
 
 /// END OF WHO IS STUFF
 
+const Access_Cookies_API = () => {  //get the cookies api key for who is
+    return new Promise((resolve) => {
+        chrome.storage.sync.get((Cookie_Data) => {
+            resolve(Cookie_Data.WHOISJSON_API_KEY || "");
+        });
+    });
+};
+
 // CHECK URL FUNCTION (MAIN FUNCTION)
-async function Check_URL(url, WHOISJSON_API_KEY) {
-    console.log("Checking URL:", url);
+async function Check_URL(url) {
+    console.warn("CHECKING_URL.JS:", url);
+
+    const API_2 = await Access_Cookies_API();
+    console.log("API_2:", API_2);
+
     const {url_new, url_redirects, url_tld} = Verify_URL(url) || {};
     console.log("Normalised URL:", url_new);
     console.log("URL Redirects:", url_redirects);
     console.log("URL TLD:", url_tld);
-    const whois_data = await Get_WHOIS_Data(url_new, WHOISJSON_API_KEY);
+    const whois_data = await Get_WHOIS_Data(url_new, API_2);
     if (whois_data) {
         Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
-        Calculate_Risk_Level();
+        return Calculate_Risk_Level();
     }
     else {
         console.error("No WHOIS data found");
+        return null;
     }
     
     

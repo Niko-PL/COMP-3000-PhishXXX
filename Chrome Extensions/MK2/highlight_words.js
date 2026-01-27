@@ -12,6 +12,8 @@ const BAD_WORDS_Class = "PhishHussar-highlighted-word";
 const Style_Name = "PhishHussar-highlight-css-1"; //style name to inject (unique to avoid conflicts)
 const WARNING_CLASS = "PhishHussar-warning-message";
 
+const URL_CLASS = "PhishHussar-highlighted-url";
+
 let Warning_Message_Div = null; //global variable for warning message user is hovering over
 
 console.log("Bad Words:", Bad_Words);
@@ -25,7 +27,7 @@ Identify_Hovering_Word = (message,event) => {
     
 }
 
-Check_Warning_Message_Existance = (warning_message) => {
+Display_Warning_Message = (warning_message) => {
     if (Warning_Message_Div && document.body.contains(Warning_Message_Div)) {
         return Warning_Message_Div;
     }
@@ -57,9 +59,31 @@ Get_Warning_Message = (id) => {
 Show_Warning_Message = (message) => {
     console.log("Show_Warning_Message Target", message.currentTarget);
     console.log("Show_Warning_Message Location", message.screenX, message.screenY);
-    console.log("Show_Warning_Message doing Identify_Hovering_Word :", Get_Warning_Message(message.currentTarget.getAttribute("warning_id")));
-    let Warning_Message_Div = Check_Warning_Message_Existance(Get_Warning_Message(message.currentTarget.getAttribute("warning_id"))); //get the warning message div
-    if (Warning_Message_Div != null && !Warning_Message_Div.classList.contains("visible")) { //if you can see it then remove it
+
+    let Dispaly_Message_Div = null;
+
+    if (message.currentTarget.getAttribute("warning_id") != null) {
+        try{
+            console.warn("Show_Warning_Message for warning_id :", Get_Warning_Message(message.currentTarget.getAttribute("warning_id")));
+            Dispaly_Message_Div = Display_Warning_Message(Get_Warning_Message(message.currentTarget.getAttribute("warning_id"))); //get the warning message div
+        }
+        catch (error) {
+            console.error("Error showing warning message:", error);
+            Dispaly_Message_Div = "Calculation Error Please Verify Yourself";
+        }
+    }
+    if (message.currentTarget.getAttribute("data-risk") != null) {
+        try{
+            console.warn("Show_Warning_Message  for data-risk  :", message.currentTarget.getAttribute("data-risk"));
+            Dispaly_Message_Div = Display_Warning_Message("This Links Risk is analysed to be:  " + message.currentTarget.getAttribute("data-risk") + "/5"); //get the warning message div
+        }
+        catch (error) {
+            console.error("Error showing data-risk message:", error);
+            Dispaly_Message_Div = "Calculation Error Please Verify Yourself";
+        }
+    }
+    
+    if (Warning_Message_Div != null && !Warning_Message_Div.classList.contains("visible")) { //if you cant see it then add it
         Warning_Message_Div.classList.add("visible");
     }
 }
@@ -74,12 +98,12 @@ Hide_Warning_Message = () => {
 }
 
 Hover_Warning_Message = (event) => { //only update location of warning message
-    console.log("Hover_Warning_Message Target", event.currentTarget);
-    console.log("Hover_Warning_Message Location", event.screenX, event.screenY);
+    //console.log("Hover_Warning_Message Target", event.currentTarget);
+    //console.log("Hover_Warning_Message Location", event.screenX, event.screenY);
     const X_Location = event.screenX - 30 + "px";
     const Y_Location = event.screenY - 105 + "px";
-    console.log("Hover_Warning_Message X_Location", X_Location);
-    console.log("Hover_Warning_Message Y_Location", Y_Location);
+    //console.log("Hover_Warning_Message X_Location", X_Location);
+    //console.log("Hover_Warning_Message Y_Location", Y_Location);
     Warning_Message_Div.style.left = X_Location;
     Warning_Message_Div.style.top = Y_Location;
 }
@@ -89,12 +113,16 @@ Attach_Warning_Message_Event_Listeners = (rootNode) => {
         console.log("Attach_Warning_Message_Event_Listeners: skipping non-element root", rootNode);
         return;
     }
-    Highlighted_Words = rootNode.querySelectorAll(`.${BAD_WORDS_Class}`);
+    console.log("Attach_Warning_Message_Event_Listeners: rootNode", rootNode);
+
+    let Highlighted_Words = rootNode.querySelectorAll(`.${BAD_WORDS_Class}`);
+
+    
     Highlighted_Words.forEach(node => {
         if (node.dataset.Listner_Active == true) {
             return;
         }
-        
+        console.log("Attaching event listeners to node:", node);
         node.addEventListener("mouseenter",Show_Warning_Message);
         node.addEventListener("mousemove",Hover_Warning_Message);
         node.addEventListener("mouseleave",Hide_Warning_Message);
@@ -140,6 +168,7 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
         return;
     }
 
+    //revisit this can be made simple
     roots.forEach(rootNode => {
         if (!(rootNode instanceof Node)) {
             console.log("Highlight_Words: skipping non-node root", rootNode);
@@ -196,6 +225,62 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
     });
 }
 
+ Highlight_Url_HREF = async (body) => {
+    console.warn("Highlight_Url_HREF: body", body);
+    if (!body || body.length === 0 || body == null) {
+        console.log("Highlight_Url_HREF: no body supplied");
+        return;
+    }
+
+    const roots = (body instanceof NodeList)
+        ? Array.from(body)
+        : (body ? [body] : []);
+
+    if (roots.length === 0) {
+        console.log("Highlight_Url_HREF: no body nodes supplied");
+        return;
+    }
+    else{
+        console.log("THE ROOTS ARE: ", roots);
+    }
+
+    for (const rootNode of roots) {
+        if (!(rootNode instanceof Node)) {
+            console.log("Scan_And_Highlight_Links: skipping non-node root", rootNode);
+            continue;
+        }
+
+        const URLS = rootNode.querySelectorAll("a[href]");
+        
+        for (const url of URLS) {
+            const link_href = url.getAttribute("href");
+
+            console.log("Found link from href:", link_href);
+
+            let risk = await Check_URL(link_href);
+
+            if (risk == null || risk == undefined) {
+                console.error("Risk is null");
+                return;
+            }
+            else{
+                console.log("Risk:", risk);
+            }
+            console.log("Risk:", risk);
+
+            url.classList.add(URL_CLASS); //make it pink
+            console.log("URL class added");
+            url.setAttribute("data-risk", String(risk));
+            url.setAttribute("data-url", link_href);
+            url.addEventListener("mouseenter",Show_Warning_Message);
+            url.addEventListener("mousemove",Hover_Warning_Message);
+            url.addEventListener("mouseleave",Hide_Warning_Message);
+            Attach_Warning_Message_Event_Listeners(url);
+        }
+        
+    }
+
+}
 Inject_CSS = () => { //inject the css into the head of the document
     
     if (document.getElementById(Style_Name)){
@@ -209,6 +294,8 @@ Inject_CSS = () => { //inject the css into the head of the document
     .${BAD_WORDS_Class} {
     background-color: darkred; 
     color: white;}
+
+    
 
     .${WARNING_CLASS} {
     background-color: rgba(0, 0, 0, 0.64); 
@@ -229,10 +316,19 @@ Inject_CSS = () => { //inject the css into the head of the document
     } 
 
     .${WARNING_CLASS}.visible {
-    opacity: 1;}`;
+    opacity: 1;}
+
+
+    .${URL_CLASS} {
+    background-color: rgba(255, 0, 234, 0.64); 
+    color: rgb(0, 0, 0)`;
+
     (document.head || document.documentElement).appendChild(css); //append to head or document element (wichever is present)
     console.log("CSS injected");
     }
+
+    
+
 }
 
 Scan_Email = () => {
@@ -243,6 +339,7 @@ Scan_Email = () => {
     if (Email_Body.length > 0) {
         console.log("Email Body found");
         Highlight_Words(Email_Body,Word_Regex());
+        Highlight_Url_HREF(Email_Body);
     }
     else {
         console.log("Email Body not found");

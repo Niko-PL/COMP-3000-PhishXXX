@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         return new Promise((resolve) => {
             chrome.scripting.executeScript({
                 target: { tabId: tabID },
-                files: ["Bad_Words_List.js","Warnings_List.js","highlight_words.js",]
+                files: ["Bad_Words_List.js","Warnings_List.js","check_url.js","highlight_words.js",]
             },
             ()=> {
                 if (chrome.runtime.lastError) {  //arrow function to check for errors
