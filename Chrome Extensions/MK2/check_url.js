@@ -3,13 +3,14 @@ console.log("URL checker Loaded");
 
 const Bad_Endings = [".exe", ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".iso",".dmg", ".pkg", ".deb", ".rpm", ".msi", ".py",".bat", ".cmd", ".com", ".ps1", ".vbs", ".js", ".scr", ".pif", ".reg",".sh", ".bin", ".run", ".pl", ".cgi",".app", ".command", ".jar", ".pyc", ".apk", ".appimage", ".wsf", ".gadget"];
 
+const VIRUS_API_Key = "5c41436729aacdbe8c02d1707744c3d35b1c51987eabe3de4163086541115f3f";
 
 const GDPR_Country_TLDs = [".at",".be",".bg",".hr",".cy",".cz",".dk",".ee",".fi",".fr",".de",".gr",".hu",".ie",".it",".lv",".lt",".lu",".mt",".nl",".pl",".pt",".ro",".sk",".si",".es",".se",".is",".li",".no",".eu",".uk",".com",".org",".edu",".tv"];
 //and tuvalu country for tv as in televesion
 
 const Risk_Classification = { 1: "No Risk", 2: "Low Risk", 3: "Medium Risk", 4: "High Risk", 5: "Very High Risk" };
 
-let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0 };
+let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0 };
 
 const Update_Risk_Level = (Risk, Level) => {
     console.log("Updating Risk Level:", Risk, Level);
@@ -171,12 +172,32 @@ const Analyze_Expiration_Date = (data) => {  //expired means no good
     }
 }
 
+const Analyze_Virus_Total = async (url) => {
+    console.warn("Analyzing Virus Total for:", url);
+
+    const result = await chrome.runtime.sendMessage({
+        action: "VT-Background-1",
+        url: url,
+        API_Key: VIRUS_API_Key,
+    });
+    console.warn("Virus Total response:", result);
+
+    //console.log ("Virus Total stats:", result.data.attributes.stats);
+   
+
+    
+}
+
+
+
+
 // WHO IS DATA GET AND ANALYZE
-const Analyze_WHOIS_Data = (data,URL_TLD,URL_Redirects) => {
+const Analyze_WHOIS_Data = async (data,URL_TLD,URL_Redirects,URL_new) => {
     Analyze_Age(data);
     Analyze_Expiration_Date(data);
     Analyze_TLD(URL_TLD);
     Analyze_Redirects(URL_Redirects);
+    await Analyze_Virus_Total(URL_new);
 }
 
 const Get_WHOIS_Data = async (URL_new, WHOISJSON_API_KEY) => {
@@ -225,7 +246,7 @@ async function Check_URL(url) {
     console.log("URL TLD:", url_tld);
     const whois_data = await Get_WHOIS_Data(url_new, API_2);
     if (whois_data) {
-        Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
+        await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects,url_new);
         return Calculate_Risk_Level();
     }
     else {
