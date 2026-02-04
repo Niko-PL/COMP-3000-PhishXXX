@@ -24,9 +24,10 @@ const Calculate_Risk_Level = () => {
         risk_level += value;
     }
     console.log("Risk level holder:", Risk_Level);
-    const fianl_risk_level = risk_level / Object.keys(Risk_Level).length;
-    console.log("Final Risk Level:", fianl_risk_level);
-    return fianl_risk_level;
+    const average_risk_level = risk_level / Object.keys(Risk_Level).length;
+    const final_risk_level = Math.ceil(average_risk_level * 2) / 2;
+    console.log("Final Risk Level (rounded up to .5):", final_risk_level);
+    return final_risk_level;
 }
 
 const Verify_URL = (url) => {  // not secure not good
@@ -58,14 +59,14 @@ const Verify_URL = (url) => {  // not secure not good
         console.log("URL TLD:", url_tld);
         const tld_index = url_data.index; // The index where the TLD was found
 
-        const url_new = url.substring(0, tld_index + url_tld.length);
+        const url_short = url.substring(0, tld_index + url_tld.length);
         const url_redirects = url.substring(tld_index + url_tld.length);
 
-        console.log("URL after trimming to ending:", url_new);
+        console.log("URL after trimming to ending:", url_short);
         console.log("URL redirects:", url_redirects);
         console.log("URL TLD:", url_tld);
 
-        return { url_new, url_redirects, url_tld };
+        return { url_short, url_redirects, url_tld };
     } else {
         console.error("No URL ending found. Incorrect URL:", url);
         return;
@@ -172,15 +173,50 @@ const Analyze_Expiration_Date = (data) => {  //expired means no good
     }
 }
 
-const Analyze_Virus_Total = async (url) => {
+const Analyze_Virus_Total = async (url,API_Virus_Total) => {
     console.warn("Analyzing Virus Total for:", url);
 
     const result = await chrome.runtime.sendMessage({
         action: "VT-Background-1",
         url: url,
-        API_Key: VIRUS_API_Key,
+        API_Key: API_Virus_Total,
     });
     console.warn("Virus Total response:", result);
+
+    const Virus_Total_STATS = result.data.attributes.stats;
+    const VT_Harmless = parseInt(Virus_Total_STATS.harmless);
+    const VT_Malicious = parseInt(Virus_Total_STATS.malicious);
+    const VT_Suspicious = parseInt(Virus_Total_STATS.suspicious);
+    const VT_Undetected = parseInt(Virus_Total_STATS.undetected);
+
+    try {
+    if (VT_Malicious > 0) {
+        console.warn("Virus Total is malicious");
+        Update_Risk_Level("Virus_Total", 5);
+    }
+    else if (VT_Suspicious > 0) {
+        console.warn("Virus Total is suspicious");
+        Update_Risk_Level("Virus_Total", 4);
+    }
+    else if (VT_Harmless > 0) {
+        console.warn("Virus Total is harmless");
+        Update_Risk_Level("Virus_Total", 1);
+    }
+    else if (VT_Undetected > 0) {
+        console.warn("Virus Total is undetected");
+        Update_Risk_Level("Virus_Total", 3);
+    }
+    else {
+        console.warn("Virus Total is unknown passed all checks");
+        Update_Risk_Level("Virus_Total", 3);
+    }
+    }
+    catch (error) {
+        console.warn("Virus Total error:", error);
+        Update_Risk_Level("Virus_Total", 3);
+    }
+
+
 
     //console.log ("Virus Total stats:", result.data.attributes.stats);
    
@@ -192,15 +228,14 @@ const Analyze_Virus_Total = async (url) => {
 
 
 // WHO IS DATA GET AND ANALYZE
-const Analyze_WHOIS_Data = async (data,URL_TLD,URL_Redirects,URL_new) => {
+const Analyze_WHOIS_Data = async (data,URL_TLD,URL_Redirects) => {
     Analyze_Age(data);
     Analyze_Expiration_Date(data);
     Analyze_TLD(URL_TLD);
     Analyze_Redirects(URL_Redirects);
-    await Analyze_Virus_Total(URL_new);
 }
 
-const Get_WHOIS_Data = async (URL_new, WHOISJSON_API_KEY) => {
+const Get_WHOIS_Data = async (url_short, WHOISJSON_API_KEY) => {
     
     if (!WHOISJSON_API_KEY || WHOISJSON_API_KEY.length === 0 || WHOISJSON_API_KEY == null){
         console.error("WHOISJSON_API_KEY not found");
@@ -208,12 +243,12 @@ const Get_WHOIS_Data = async (URL_new, WHOISJSON_API_KEY) => {
     }
     console.log("WHOISJSON_API_KEY:", WHOISJSON_API_KEY);
 
-    if (!URL_new || URL_new.length === 0 || URL_new == null){
-        console.error("No URL provided or URL is invalid :" + URL_new);
+    if (!url_short || url_short.length === 0 || url_short == null){
+        console.error("No URL provided or URL is invalid: " + url_short);
         return null;
     }
 
-    const endpoint = `https://whoisjson.com/api/v1/whois?domain=${encodeURIComponent(URL_new)}`;
+    const endpoint = `https://whoisjson.com/api/v1/whois?domain=${encodeURIComponent(url_short)}`;
     const response = await fetch(endpoint, { headers: { Authorization: `TOKEN=${WHOISJSON_API_KEY}` } });
     if (!response.ok) {
         throw new Error(`WhoisJSON request failed (${response.status} ${response.statusText})`);
@@ -228,7 +263,11 @@ const Get_WHOIS_Data = async (URL_new, WHOISJSON_API_KEY) => {
 const Access_Cookies_API = () => {  //get the cookies api key for who is
     return new Promise((resolve) => {
         chrome.storage.sync.get((Cookie_Data) => {
-            resolve(Cookie_Data.WHOISJSON_API_KEY || "");
+            // Return both keys in an array
+            resolve([
+                Cookie_Data.WHOISJSON_API_KEY || "",
+                Cookie_Data.Virus_Total_API_KEY || ""
+            ]);
         });
     });
 };
@@ -237,16 +276,20 @@ const Access_Cookies_API = () => {  //get the cookies api key for who is
 async function Check_URL(url) {
     console.warn("CHECKING_URL.JS:", url);
 
-    const API_2 = await Access_Cookies_API();
-    console.log("API_2:", API_2);
+    const API_Keys = await Access_Cookies_API();
+    const API_WHOISJSON = API_Keys[0];
+    const API_Virus_Total = API_Keys[1];
+    console.log("API_Keys:", API_WHOISJSON + " " + API_Virus_Total);
+    
 
-    const {url_new, url_redirects, url_tld} = Verify_URL(url) || {};
-    console.log("Normalised URL:", url_new);
+    const {url_short, url_redirects, url_tld} = Verify_URL(url) || {};
+    console.log("Normalised URL:", url_short);
     console.log("URL Redirects:", url_redirects);
     console.log("URL TLD:", url_tld);
-    const whois_data = await Get_WHOIS_Data(url_new, API_2);
+    const whois_data = await Get_WHOIS_Data(url_short, API_WHOISJSON);
     if (whois_data) {
-        await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects,url_new);
+        await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
+        await Analyze_Virus_Total(url_short, API_Virus_Total);
         return Calculate_Risk_Level();
     }
     else {

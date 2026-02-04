@@ -24,11 +24,11 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
         //inside settings section data laoded
         const Run_On_Open = document.getElementById("run_on_open");
-        const Sheet_ID = document.getElementById("sheetId");
-        const Sheet_Name = document.getElementById("sheet_name");
-        const Emails_Recorded = document.getElementById("emails_recorded");
-        const Clear_Sheet = document.getElementById("clear_sheet");
-        const Time_Range = document.getElementById("time_range");
+        //const Sheet_ID = document.getElementById("sheetId");
+        //const Sheet_Name = document.getElementById("sheet_name");
+        //const Emails_Recorded = document.getElementById("emails_recorded");
+        //const Clear_Sheet = document.getElementById("clear_sheet");
+        //const Time_Range = document.getElementById("time_range");
 
         const Highlight_On_Open = document.getElementById("highlight_on_open");
         const Improve_Firebase = document.getElementById("improve_firebase");
@@ -36,14 +36,14 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
 
         // test section data loaded
-        const URL_Input = document.getElementById("URL_input");
-        const URL_Check_Button = document.getElementById("URL_check_button");
-        const Test_Section = document.getElementById("test_section");
+        //const URL_Input = document.getElementById("URL_input");
+        //const URL_Check_Button = document.getElementById("URL_check_button");
+        //const Test_Section = document.getElementById("test_section");
 
         const WHOISJSON_API_KEY = document.getElementById("WHOISJSON_API_KEY");
         const WHOISJSON_API_KEY_Button = document.getElementById("WHOISJSON_API_KEY_button");
-
-
+        const Virus_Total_API_KEY = document.getElementById("Virus_Total_API_KEY");
+        const Virus_Total_API_KEY_Button = document.getElementById("Virus_Total_API_KEY_button");
 
 
     //settings cookies  contorleer
@@ -54,16 +54,17 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     const Save_Settings = () => {
         const Settings_Cookie = {
             
-            Sheet_ID: Sheet_ID.value,
-            Sheet_Name: Sheet_Name.value,
-            Emails_Recorded: Emails_Recorded.value,
-            Clear_Sheet: Clear_Sheet.checked,
-            Time_Range: Time_Range.value,
+            //Sheet_ID: Sheet_ID.value,
+            //Sheet_Name: Sheet_Name.value,
+            //Emails_Recorded: Emails_Recorded.value,
+            //Clear_Sheet: Clear_Sheet.checked,
+            //Time_Range: Time_Range.value,
 
             Highlight_On_Open: Highlight_On_Open.checked,
             Improve_Firebase: Improve_Firebase.checked,
             Use_AI: Use_AI.checked,
             WHOISJSON_API_KEY: WHOISJSON_API_KEY.value,
+            Virus_Total_API_KEY: Virus_Total_API_KEY.value,
         };
 
         try {
@@ -79,16 +80,17 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     const Load_Settings = () => {
         chrome.storage.sync.get((Cookie_Data) => {
             console.log("Settings loaded:", Cookie_Data);
-            Sheet_ID.value = Cookie_Data.Sheet_ID || "";
-            Sheet_Name.value = Cookie_Data.Sheet_Name || "";
-            Emails_Recorded.value = Cookie_Data.Emails_Recorded || 20;
-            Clear_Sheet.checked = Cookie_Data.Clear_Sheet || false;
-            Time_Range.value = Cookie_Data.Time_Range || "7";
+            //Sheet_ID.value = Cookie_Data.Sheet_ID || "";
+            //Sheet_Name.value = Cookie_Data.Sheet_Name || "";
+            //Emails_Recorded.value = Cookie_Data.Emails_Recorded || 20;
+            //Clear_Sheet.checked = Cookie_Data.Clear_Sheet || false;
+            //Time_Range.value = Cookie_Data.Time_Range || "7";
 
             Highlight_On_Open.checked = Cookie_Data.Highlight_On_Open || false;
             Improve_Firebase.checked = Cookie_Data.Improve_Firebase || false;
             Use_AI.checked = Cookie_Data.Use_AI || false;
             WHOISJSON_API_KEY.value = Cookie_Data.WHOISJSON_API_KEY || "";
+            Virus_Total_API_KEY.value = Cookie_Data.Virus_Total_API_KEY || "";
             console.log("WHOISJSON_API_KEY Loaded fro mcookies:", WHOISJSON_API_KEY.value);
         });
     }
@@ -187,16 +189,9 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
     };
    
-    //test section UI contorleer
-    if (!Test_Section || !URL_Input || !URL_Check_Button) { //if test section or url input or url check button not found, exit
-        console.error("Test section or url input or url check button not found!");
-        return;
-    }
-    else{
-        console.log("Test section and url input and url check button found");
-    }
+    
 
-    const Foward_URL = () => {
+    /*const Foward_URL = () => {
         if (!URL_Input.value) 
         {
             Update_Status("Please enter a URL", true, true);
@@ -207,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
             Update_Status("URL: " + URL_Input.value, true, true);
             try {
                 console.log("Sending URL to Check_URL " + URL_Input.value);
-                Check_URL(URL_Input.value, WHOISJSON_API_KEY.value); //send the API key to the Check_URL function
+                Check_URL(URL_Input.value, WHOISJSON_API_KEY.value , Virus_Total_API_KEY.value); //send the API key to the Check_URL function
 
             }
             catch (error) {
@@ -216,9 +211,7 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
                 return;
             }
         }
-    };
-
-
+    };*/
 
     //buttons contorleer
     if (!Button_HTML || !Button_Highlight || !Button_Scraper || !Status) {
@@ -390,18 +383,19 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     Settings_Button.addEventListener("click", Settings_Expander); //add event listener to the settings button (little cog)
     Security_Button.addEventListener("click", Security_Expander); //add event listener to the security button (little shield)
     
-    URL_Check_Button.addEventListener("click", Foward_URL);
+    //URL_Check_Button.addEventListener("click", Foward_URL);
 
 
 
-    Sheet_ID.addEventListener("input", Save_Settings);
-    Sheet_Name.addEventListener("input", Save_Settings);
-    Clear_Sheet.addEventListener("change", Save_Settings);
-    Time_Range.addEventListener("change", Save_Settings);
+    //Sheet_ID.addEventListener("input", Save_Settings);
+    //Sheet_Name.addEventListener("input", Save_Settings);
+    //Clear_Sheet.addEventListener("change", Save_Settings);
+    //Time_Range.addEventListener("change", Save_Settings);
     Highlight_On_Open.addEventListener("change", Save_Settings);
     Improve_Firebase.addEventListener("change", Save_Settings);
     Use_AI.addEventListener("change", Save_Settings);
     WHOISJSON_API_KEY_Button.addEventListener("click", Save_Settings);
+    Virus_Total_API_KEY_Button.addEventListener("click", Save_Settings);
 
     console.log("Buttons and status loaded and event listeners added");
     Load_Settings();
