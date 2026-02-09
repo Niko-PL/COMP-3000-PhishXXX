@@ -10,7 +10,7 @@ const GDPR_Country_TLDs = [".at",".be",".bg",".hr",".cy",".cz",".dk",".ee",".fi"
 
 const Risk_Classification = { 1: "No Risk", 2: "Low Risk", 3: "Medium Risk", 4: "High Risk", 5: "Very High Risk" };
 
-let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0 };
+let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0 };
 
 const Update_Risk_Level = (Risk, Level) => {
     console.log("Updating Risk Level:", Risk, Level);
@@ -34,15 +34,17 @@ const Verify_URL = (url) => {  // not secure not good
     
     const regex_ending = /\.([A-Za-z]{2,4})(?=\/|$)/;
 
-
+    let url_protocol = "";
     if (url.includes("https://")) {
         Update_Risk_Level("Protocol", 1);
         url = url.replace("https://", "");
+        url_protocol = "https://";
         console.log("URL after protocol check:", url);
     }
     else if (url.includes("http://")) {
         Update_Risk_Level("Protocol", 4);
         url = url.replace("http://", "");
+        url_protocol = "http://";
         console.log("URL after protocol check:", url);
     }
     else {
@@ -66,7 +68,7 @@ const Verify_URL = (url) => {  // not secure not good
         console.log("URL redirects:", url_redirects);
         console.log("URL TLD:", url_tld);
 
-        return { url_short, url_redirects, url_tld };
+        return { url_short, url_redirects, url_tld, url_protocol };
     } else {
         console.error("No URL ending found. Incorrect URL:", url);
         return;
@@ -173,12 +175,19 @@ const Analyze_Expiration_Date = (data) => {  //expired means no good
     }
 }
 
-const Analyze_Virus_Total = async (url,API_Virus_Total) => {
+const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol) => {
     console.warn("Analyzing Virus Total for:", url);
+
+    if (url != url.includes("www.")) {
+        url = "www." + url;
+    }
+
+    const url_with_protocol = url_protocol + url;  //virust total providers not the best need to standardise the url to (protocol)//:www.domain.xxx
+
 
     const result = await chrome.runtime.sendMessage({
         action: "VT-Background-1",
-        url: url,
+        url: url_with_protocol,
         API_Key: API_Virus_Total,
     });
     console.warn("Virus Total response:", result);
@@ -193,22 +202,27 @@ const Analyze_Virus_Total = async (url,API_Virus_Total) => {
     if (VT_Malicious > 0) {
         console.warn("Virus Total is malicious");
         Update_Risk_Level("Virus_Total", 5);
+        return true;
     }
     else if (VT_Suspicious > 0) {
         console.warn("Virus Total is suspicious");
         Update_Risk_Level("Virus_Total", 4);
+        return true;
     }
     else if (VT_Harmless > 0) {
         console.warn("Virus Total is harmless");
         Update_Risk_Level("Virus_Total", 1);
+        return true;
     }
     else if (VT_Undetected > 0) {
         console.warn("Virus Total is undetected");
         Update_Risk_Level("Virus_Total", 3);
+        return true;
     }
     else {
         console.warn("Virus Total is unknown passed all checks");
         Update_Risk_Level("Virus_Total", 3);
+        return false;
     }
     }
     catch (error) {
@@ -224,7 +238,19 @@ const Analyze_Virus_Total = async (url,API_Virus_Total) => {
     
 }
 
+const Analyze_Link_Text = (url_href, url_text) => {
+    console.log("Analyzing link text:", url_text);
+    const {url_short, url_redirects, url_tld} = Verify_URL(url_text)
+    console.log("Text short:", url_short);
 
+    console.log("URL short:", url_href);
+    if (url_href ==url_short) {
+        Update_Risk_Level("Link_Text", 1);
+    }
+    else {
+        Update_Risk_Level("Link_Text", 5);
+    }
+}
 
 
 // WHO IS DATA GET AND ANALYZE
@@ -273,7 +299,7 @@ const Access_Cookies_API = () => {  //get the cookies api key for who is
 };
 
 // CHECK URL FUNCTION (MAIN FUNCTION)
-async function Check_URL(url) {
+async function Check_URL(url, link_text) {
     console.warn("CHECKING_URL.JS:", url);
 
     const API_Keys = await Access_Cookies_API();
@@ -282,14 +308,20 @@ async function Check_URL(url) {
     console.log("API_Keys:", API_WHOISJSON + " " + API_Virus_Total);
     
 
-    const {url_short, url_redirects, url_tld} = Verify_URL(url) || {};
+    const {url_short, url_redirects, url_tld, url_protocol} = Verify_URL(url) || {};
     console.log("Normalised URL:", url_short);
     console.log("URL Redirects:", url_redirects);
     console.log("URL TLD:", url_tld);
     const whois_data = await Get_WHOIS_Data(url_short, API_WHOISJSON);
     if (whois_data) {
+        let virus_total_attempts = 0;
         await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
-        await Analyze_Virus_Total(url_short, API_Virus_Total);
+        let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol);
+        while (!virus_total_result && virus_total_attempts < 5) {
+            virus_total_attempts++;
+            virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol);
+        }
+        Analyze_Link_Text(url_short, link_text);
         return Calculate_Risk_Level();
     }
     else {

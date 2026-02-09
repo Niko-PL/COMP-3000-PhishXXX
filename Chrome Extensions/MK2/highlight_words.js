@@ -57,14 +57,14 @@ Get_Warning_Message = (id) => {
 }
 
 Show_Warning_Message = (message) => {
-    console.log("Show_Warning_Message Target", message.currentTarget);
-    console.log("Show_Warning_Message Location", message.screenX, message.screenY);
+    //console.log("Show_Warning_Message Target", message.currentTarget);
+    //console.log("Show_Warning_Message Location", message.screenX, message.screenY);
 
     let Dispaly_Message_Div = null;
 
     if (message.currentTarget.getAttribute("warning_id") != null) {
         try{
-            console.warn("Show_Warning_Message for warning_id :", Get_Warning_Message(message.currentTarget.getAttribute("warning_id")));
+            //console.warn("Show_Warning_Message for warning_id :", Get_Warning_Message(message.currentTarget.getAttribute("warning_id")));
             Dispaly_Message_Div = Display_Warning_Message(Get_Warning_Message(message.currentTarget.getAttribute("warning_id"))); //get the warning message div
         }
         catch (error) {
@@ -74,7 +74,7 @@ Show_Warning_Message = (message) => {
     }
     if (message.currentTarget.getAttribute("data-risk") != null) {
         try{
-            console.warn("Show_Warning_Message  for data-risk  :", message.currentTarget.getAttribute("data-risk"));
+            //console.warn("Show_Warning_Message  for data-risk  :", message.currentTarget.getAttribute("data-risk"));
             Dispaly_Message_Div = Display_Warning_Message("This Links Risk is analysed to be:  " + message.currentTarget.getAttribute("data-risk") + "/5"); //get the warning message div
         }
         catch (error) {
@@ -90,7 +90,7 @@ Show_Warning_Message = (message) => {
 
 
 Hide_Warning_Message = () => {
-    console.log("Hide_Warning_Message");
+    //console.log("Hide_Warning_Message");
     if (Warning_Message_Div != null && Warning_Message_Div.classList.contains("visible")) { //if you can see it then remove it
         Warning_Message_Div.classList.remove("visible");
         Warning_Message_Div = null;
@@ -113,7 +113,7 @@ Attach_Warning_Message_Event_Listeners = (rootNode) => {
         console.log("Attach_Warning_Message_Event_Listeners: skipping non-element root", rootNode);
         return;
     }
-    console.log("Attach_Warning_Message_Event_Listeners: rootNode", rootNode);
+    //console.log("Attach_Warning_Message_Event_Listeners: rootNode", rootNode);
 
     let Highlighted_Words = rootNode.querySelectorAll(`.${BAD_WORDS_Class}`);
 
@@ -122,7 +122,7 @@ Attach_Warning_Message_Event_Listeners = (rootNode) => {
         if (node.dataset.Listner_Active == true) {
             return;
         }
-        console.log("Attaching event listeners to node:", node);
+        //console.log("Attaching event listeners to node:", node);
         node.addEventListener("mouseenter",Show_Warning_Message);
         node.addEventListener("mousemove",Hover_Warning_Message);
         node.addEventListener("mouseleave",Hide_Warning_Message);
@@ -226,7 +226,7 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
 }
 
  Highlight_Url_HREF = async (body) => {
-    console.warn("Highlight_Url_HREF: body", body);
+    //console.warn("Highlight_Url_HREF: body", body);
     if (!body || body.length === 0 || body == null) {
         console.log("Highlight_Url_HREF: no body supplied");
         return;
@@ -255,9 +255,14 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
         for (const url of URLS) {
             const link_href = url.getAttribute("href");
 
+            const link_text = url.textContent || "";
+
+        
+            
+            console.log("Found link from text:", link_text);
             console.log("Found link from href:", link_href);
 
-            let risk = await Check_URL(link_href);
+            let risk = await Check_URL(link_href, link_text);
 
             if (risk == null || risk == undefined) {
                 console.error("Risk is null");
