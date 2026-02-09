@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         const Security_Button = document.getElementById("security_button");
         const Security_Section = document.getElementById("security_section");
 
+        const WHOISJSON_API_KEY_Looker = document.getElementById("WHOISJSON_API_KEY_Looker");
+        const Virus_Total_API_KEY_Looker = document.getElementById("Virus_Total_API_KEY_Looker");
+
 
         //inside settings section data laoded
         const Run_On_Open = document.getElementById("run_on_open");
@@ -52,21 +55,69 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     //------------------------------------------------------------------
 
     const Save_Settings = () => {
-        const Settings_Cookie = {
+        const temp =  'API Key Loaded Successfully';
+        let WHOISJSON_API_KEY_value = '';
+        let Virus_Total_API_KEY_value = '';
+        let Who = false;
+        let Virus_Total = false;
+        if (!temp.includes(WHOISJSON_API_KEY.value )) {
+            WHOISJSON_API_KEY_value = WHOISJSON_API_KEY.value;
+            Who = true;
+        }
+        else {
+            console.log("Who is key is not new input");
+        }
+
+        if (!temp.includes(Virus_Total_API_KEY.value )) {
+            Virus_Total_API_KEY_value = Virus_Total_API_KEY.value;
+            Virus_Total = true;
+        }
+        else {
+            console.log("Virus total key is not new input");
+        }
+
+        let Settings_Cookie = {};
+
+        if (Who && Virus_Total) { //if both keys are new inputs, save both
+            console.log("Both keys are new inputs");
+             Settings_Cookie = {
+                
             
-            //Sheet_ID: Sheet_ID.value,
-            //Sheet_Name: Sheet_Name.value,
-            //Emails_Recorded: Emails_Recorded.value,
-            //Clear_Sheet: Clear_Sheet.checked,
-            //Time_Range: Time_Range.value,
 
-            Highlight_On_Open: Highlight_On_Open.checked,
-            Improve_Firebase: Improve_Firebase.checked,
-            Use_AI: Use_AI.checked,
-            WHOISJSON_API_KEY: WHOISJSON_API_KEY.value,
-            Virus_Total_API_KEY: Virus_Total_API_KEY.value,
-        };
-
+                Highlight_On_Open: Highlight_On_Open.checked,
+                Improve_Firebase: Improve_Firebase.checked,
+                Use_AI: Use_AI.checked,
+                WHOISJSON_API_KEY: WHOISJSON_API_KEY_value,
+                Virus_Total_API_KEY: Virus_Total_API_KEY_value,
+            };
+        }
+        else if (Who && !Virus_Total) { //if one of the keys is new input, save the new input
+            console.log("Who is key is new input");
+            Settings_Cookie = {
+                Highlight_On_Open: Highlight_On_Open.checked,
+                Improve_Firebase: Improve_Firebase.checked,
+                Use_AI: Use_AI.checked,
+                HOISJSON_API_KEY: WHOISJSON_API_KEY_value,
+            };
+        }
+        else if (!Who && Virus_Total) { //if one of the keys is new input, save the new input
+            console.log("Virus total key is new input");
+            Settings_Cookie = {
+                Highlight_On_Open: Highlight_On_Open.checked,
+                Improve_Firebase: Improve_Firebase.checked,
+                Use_AI: Use_AI.checked,
+                Virus_Total_API_KEY: Virus_Total_API_KEY_value,
+            };
+        }
+        else {
+            console.log("No keys are new inputs");
+            Settings_Cookie = {
+                Highlight_On_Open: Highlight_On_Open.checked,
+                Improve_Firebase: Improve_Firebase.checked,
+                Use_AI: Use_AI.checked,
+            };
+        }
+        
         try {
             chrome.storage.sync.set(Settings_Cookie);
             console.log("Settings saved");
@@ -89,13 +140,71 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
             Highlight_On_Open.checked = Cookie_Data.Highlight_On_Open || false;
             Improve_Firebase.checked = Cookie_Data.Improve_Firebase || false;
             Use_AI.checked = Cookie_Data.Use_AI || false;
-            WHOISJSON_API_KEY.value = Cookie_Data.WHOISJSON_API_KEY || "";
-            Virus_Total_API_KEY.value = Cookie_Data.Virus_Total_API_KEY || "";
-            console.log("WHOISJSON_API_KEY Loaded fro mcookies:", WHOISJSON_API_KEY.value);
+            
+
+            WHOISJSON_API_KEY.value = 'API Key Loaded Successfully';
+            Virus_Total_API_KEY.value = 'API Key Loaded Successfully';
+            //console.log("WHOISJSON_API_KEY Loaded fro mcookies:", WHOISJSON_API_KEY.value);
         });
     }
 
+    const Who_is_API_Controller = () => {
+        chrome.storage.sync.get((Cookie_Data) => {
+            if ((WHOISJSON_API_KEY.value == 'API Key Loaded Successfully' || WHOISJSON_API_KEY.value == 'API Key failed to load') && WHOISJSON_API_KEY.value != Cookie_Data.WHOISJSON_API_KEY) {
+                if (Cookie_Data.WHOISJSON_API_KEY != null && Cookie_Data.WHOISJSON_API_KEY != '') {
+                    console.log("WHOISJSON_API_KEY is loaded from cookies:", Cookie_Data.WHOISJSON_API_KEY);
+                    WHOISJSON_API_KEY.value = Cookie_Data.WHOISJSON_API_KEY; //show the key
+                }
+                else {
+                    console.log("WHOISJSON_API_KEY is not loaded from cookies:");
+                    WHOISJSON_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
+                }
+                
+            }
+            else if ((WHOISJSON_API_KEY.value != 'API Key Loaded Successfully' || WHOISJSON_API_KEY.value !== 'API Key failed to load') && WHOISJSON_API_KEY.value == Cookie_Data.WHOISJSON_API_KEY) {
+                if (Cookie_Data.WHOISJSON_API_KEY != null && Cookie_Data.WHOISJSON_API_KEY != '') {
+                    WHOISJSON_API_KEY.value = 'API Key Loaded Successfully'; //show the key
+                }
+                else {
+                    WHOISJSON_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
+                }
+            }
+            else {
 
+                WHOISJSON_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
+            }
+
+        });
+    }
+
+    const Virus_Total_API_Controller = () => {
+        chrome.storage.sync.get((Cookie_Data) => {
+            if ((Virus_Total_API_KEY.value == 'API Key Loaded Successfully' || Virus_Total_API_KEY.value == 'API Key failed to load') && Virus_Total_API_KEY.value != Cookie_Data.Virus_Total_API_KEY) {
+                if (Cookie_Data.Virus_Total_API_KEY != null && Cookie_Data.Virus_Total_API_KEY != '') {
+                    console.log("Virus_Total_API_KEY is loaded from cookies:", Cookie_Data.Virus_Total_API_KEY);
+                    Virus_Total_API_KEY.value = Cookie_Data.Virus_Total_API_KEY; //show the key
+                }
+                else {
+                    console.log("Virus_Total_API_KEY is not loaded from cookies:");
+                    Virus_Total_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
+                }
+                
+            }
+            else if ((Virus_Total_API_KEY.value != 'API Key Loaded Successfully' || Virus_Total_API_KEY.value !== 'API Key failed to load') && Virus_Total_API_KEY.value == Cookie_Data.Virus_Total_API_KEY) {
+                if (Cookie_Data.Virus_Total_API_KEY != null && Cookie_Data.Virus_Total_API_KEY != '') {
+                    Virus_Total_API_KEY.value = 'API Key Loaded Successfully'; //show the key
+                }
+                else {
+                    Virus_Total_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
+                }
+            }
+            else {
+
+                Virus_Total_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
+            }
+
+        });
+    }
 
 
     //run on start checkbox contorleer
@@ -397,6 +506,9 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     WHOISJSON_API_KEY_Button.addEventListener("click", Save_Settings);
     Virus_Total_API_KEY_Button.addEventListener("click", Save_Settings);
 
+    Virus_Total_API_KEY_Looker.addEventListener("click", Virus_Total_API_Controller);
+    WHOISJSON_API_KEY_Looker.addEventListener("click", Who_is_API_Controller);
+    
     console.log("Buttons and status loaded and event listeners added");
     Load_Settings();
     Update_Status("--READY FOR ACTION--");
