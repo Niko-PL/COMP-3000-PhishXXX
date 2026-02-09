@@ -301,6 +301,7 @@ const Access_Cookies_API = () => {  //get the cookies api key for who is
 // CHECK URL FUNCTION (MAIN FUNCTION)
 async function Check_URL(url, link_text) {
     console.warn("CHECKING_URL.JS:", url);
+    console.log("Link text:", link_text);
 
     const API_Keys = await Access_Cookies_API();
     const API_WHOISJSON = API_Keys[0];
@@ -321,7 +322,12 @@ async function Check_URL(url, link_text) {
             virus_total_attempts++;
             virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol);
         }
-        Analyze_Link_Text(url_short, link_text);
+        if (link_text == 'Image//Link//This//is//an//image//link') {
+            Update_Risk_Level("Link_Text", 1); //no text likley an image link
+        }
+        else {
+            Analyze_Link_Text(url_short, link_text);
+        }
         return Calculate_Risk_Level();
     }
     else {

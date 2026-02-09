@@ -255,11 +255,24 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
         for (const url of URLS) {
             const link_href = url.getAttribute("href");
 
-            const link_text = url.textContent || "";
+            let link_text = url.textContent;
+            const link_img = url.querySelector("img");
+
+            if (link_text == `` && link_img != null) {
+                console.log("Link text is null but img is present");
+                link_text = 'Image//Link//This//is//an//image//link'; //unique text to identify image links
+                
+            }
+            else if (link_text != `` && link_img != null) {
+                console.log("img is present and text is not null: ", link_text);
+
+            }
+            else if (link_text != `` && link_img == null) {
+                console.log("Link text is not null and img is not present");
+                console.log("Link text:", link_text);
+            }
 
         
-            
-            console.log("Found link from text:", link_text);
             console.log("Found link from href:", link_href);
 
             let risk = await Check_URL(link_href, link_text);
