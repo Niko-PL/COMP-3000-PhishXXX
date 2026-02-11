@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 
 TIMEOUT_SECONDS = 10
 
 app = Flask(__name__)
+CORS(app)
 
 def get_url_extended(shortened_url: str):
 
@@ -50,7 +52,7 @@ def extend_url():
     if all_redirected_urls == 'error':
         return jsonify({'error': all_redirected_urls }), 400
 
-    return jsonify({'extended_url has been made': last_redirected_url, 'original url': short_url, 'All urls redirected': all_redirected_urls }), 200
+    return jsonify({'extended_url': last_redirected_url, 'original_url': short_url, 'all_urls': all_redirected_urls }), 200
 
 
 

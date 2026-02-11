@@ -10,7 +10,7 @@ const GDPR_Country_TLDs = [".at",".be",".bg",".hr",".cy",".cz",".dk",".ee",".fi"
 
 const Risk_Classification = { 1: "No Risk", 2: "Low Risk", 3: "Medium Risk", 4: "High Risk", 5: "Very High Risk" };
 
-let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0 };
+let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0 };
 
 const Update_Risk_Level = (Risk, Level) => {
     console.log("Updating Risk Level:", Risk, Level);
@@ -252,6 +252,30 @@ const Analyze_Link_Text = (url_href, url_text) => {
     }
 }
 
+const Analyze_URL_Chain_Redirects = async (url) => { // check if the url redirects to websites of other domains
+
+    const enpoint = `http://localhost:5000/extend?short_url=${encodeURIComponent(url)}`;
+    const response = await fetch(enpoint);
+    const data = await response.json();
+    console.log("URL chain redirects data:", data);
+
+    const url_extended = data.extended_url;
+    const url_original = data.original_url;
+    const url_all = data.all_urls;
+
+
+}
+
+
+const TEST_URL_Chain_Redirects = async (url) => {
+    console.log("TESTING URL CHAIN REDIRECTS");
+    const result = await chrome.runtime.sendMessage({
+        action: "URL-API-Background-2",
+    });
+    console.log("URL API test data:", result);
+}
+
+
 
 // WHO IS DATA GET AND ANALYZE
 const Analyze_WHOIS_Data = async (data,URL_TLD,URL_Redirects) => {
@@ -298,6 +322,8 @@ const Access_Cookies_API = () => {  //get the cookies api key for who is
     });
 };
 
+
+
 // CHECK URL FUNCTION (MAIN FUNCTION)
 async function Check_URL(url, link_text) {
     console.warn("CHECKING_URL.JS:", url);
@@ -313,6 +339,9 @@ async function Check_URL(url, link_text) {
     console.log("Normalised URL:", url_short);
     console.log("URL Redirects:", url_redirects);
     console.log("URL TLD:", url_tld);
+
+    await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains
+
     const whois_data = await Get_WHOIS_Data(url_short, API_WHOISJSON);
     if (whois_data) {
         let virus_total_attempts = 0;

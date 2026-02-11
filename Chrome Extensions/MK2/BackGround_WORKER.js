@@ -60,6 +60,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
       
         
         }
+
+        if (message.action === "URL-API-Background-1") {
+          console.log("URL API requested");
+          const url = message.url;
+          const enpoint = `http://localhost:5000/extend?short_url=${encodeURIComponent(url)}`;
+          const response = await fetch(enpoint);
+          const data = await response.json();
+          console.log("URL API data:", data);
+          sendResponse(data);
+        }
+
+        if (message.action === "URL-API-Background-2") {
+            const enpoint = `http://localhost:5000/test`;
+            const response = await fetch(enpoint);
+            const data = await response.json();
+            console.log("URL API test data:", data);
+            sendResponse(data);
+        }
     })(); //close async function
     return true; // respond async  need to keep the port open
 });
+
