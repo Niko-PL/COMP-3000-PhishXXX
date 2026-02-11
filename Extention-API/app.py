@@ -10,18 +10,22 @@ def get_url_extended(shortened_url: str):
     try:
         redirected_urls = []
         ##redirected_urls.append(shortened_url) ## to include the original url in the list
-        response = requests.get(shortened_url, allow_redirects=False, timeout=TIMEOUT_SECONDS)
+         
+        response = requests.head(shortened_url, allow_redirects=False, timeout=TIMEOUT_SECONDS)
 
         while 'Location' in response.headers:
 
             next_url = response.headers['Location']
             redirected_urls.append(next_url)
-            response = requests.get(next_url, allow_redirects=False, timeout=TIMEOUT_SECONDS)
+            response = requests.head(next_url, allow_redirects=False, timeout=TIMEOUT_SECONDS)
 
             ##next_url = response.headers['Location']
             ##redirected_urls.append(response.url)
             ##response = requests.get(response.url, allow_redirects=False, timeout=TIMEOUT_SECONDS)
 
+        if redirected_urls == []:
+            return [shortened_url], shortened_url
+    
         Last_Redircet = redirected_urls [len(redirected_urls) - 1]
         
         return redirected_urls,Last_Redircet
@@ -44,7 +48,7 @@ def extend_url():
     
     all_redirected_urls, last_redirected_url = get_url_extended(short_url)
     if all_redirected_urls == 'error':
-        return jsonify({'error': all_redirected_urls }), 500
+        return jsonify({'error': all_redirected_urls }), 400
 
     return jsonify({'extended_url has been made': last_redirected_url, 'original url': short_url, 'All urls redirected': all_redirected_urls }), 200
 
