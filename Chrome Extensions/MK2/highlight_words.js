@@ -29,6 +29,7 @@ Identify_Hovering_Word = (message,event) => {
 
 Display_Warning_Message = (warning_message) => {
     if (Warning_Message_Div && document.body.contains(Warning_Message_Div)) {
+        Warning_Message_Div.textContent = warning_message; // update text when reusing
         return Warning_Message_Div;
     }
     else {
@@ -86,6 +87,7 @@ Show_Warning_Message = (message) => {
     if (Warning_Message_Div != null && !Warning_Message_Div.classList.contains("visible")) { //if you cant see it then add it
         Warning_Message_Div.classList.add("visible");
     }
+
 }
 
 
@@ -93,15 +95,14 @@ Hide_Warning_Message = () => {
     //console.log("Hide_Warning_Message");
     if (Warning_Message_Div != null && Warning_Message_Div.classList.contains("visible")) { //if you can see it then remove it
         Warning_Message_Div.classList.remove("visible");
-        Warning_Message_Div = null;
     }
 }
 
 Hover_Warning_Message = (event) => { //only update location of warning message
     //console.log("Hover_Warning_Message Target", event.currentTarget);
-    //console.log("Hover_Warning_Message Location", event.screenX, event.screenY);
-    const X_Location = event.screenX - 30 + "px";
-    const Y_Location = event.screenY - 105 + "px";
+    //console.log("Hover_Warning_Message Location", event.clientX, event.clientY);
+    const X_Location = event.clientX + 15 + "px";
+    const Y_Location = event.clientY + 5 + "px";
     //console.log("Hover_Warning_Message X_Location", X_Location);
     //console.log("Hover_Warning_Message Y_Location", Y_Location);
     Warning_Message_Div.style.left = X_Location;
@@ -131,10 +132,18 @@ Attach_Warning_Message_Event_Listeners = (rootNode) => {
 }
 
 
-Word_Regex = () => {
+Word_Regex = async (email) => {
     let Bad_Words_Regex = [];
+    console.warn("Word_Regex: Email words list:", email);
+    console.warn("Word_Regex: Sending message to background worker");
+
+    const email2 = email.replaceAll(' ', '%20');
+    console.warn("Word_Regex: Email words list 2:", email2);
+
+    const result = await chrome.runtime.sendMessage({action: "URL-API-Background-3", email_words_list: email2});
+    console.warn("URL API test data:", result);
     try {
-        Bad_Words_Regex = [...new Set(window.BAD_WORDS)].filter(Boolean);
+        Bad_Words_Regex = [...new Set(result.bad_words)].filter(Boolean);
     }
     catch (error) {
         console.error("Error creating word regex:", error);
@@ -349,14 +358,18 @@ Inject_CSS = () => { //inject the css into the head of the document
 
 }
 
-Scan_Email = () => {
+Scan_Email = async () => {
     console.log("Highlighting words");
 
     const Email_Body = document.querySelectorAll(".a3s"); //hmtl <.a3s> for gmail email body
     
     if (Email_Body.length > 0) {
         console.log("Email Body found");
-        Highlight_Words(Email_Body,Word_Regex());
+
+
+        const emailBodyString_Text = Array.from(Email_Body).map(el => el.textContent).join("");
+        console.warn("Scan_Email: Email body text:", emailBodyString_Text);
+        Highlight_Words(Email_Body, await Word_Regex(emailBodyString_Text));
         Highlight_Url_HREF(Email_Body);
     }
     else {
@@ -366,9 +379,9 @@ Scan_Email = () => {
 
 }
 
-const MAIN = () => {
+const MAIN = async () => {
     Inject_CSS(); //we inject the css for highlt
-    Scan_Email();
+    await Scan_Email();
 
     /*if (window.gmail_loaded){ //if its true then gmail is loaded and highlighted and highlighted words
         return;

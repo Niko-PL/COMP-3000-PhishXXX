@@ -1,11 +1,19 @@
+from calendar import c
+from http.client import BAD_GATEWAY
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
+from db_Controller import check_for_bad_words, load_bad_words
 
 TIMEOUT_SECONDS = 10
 
 app = Flask(__name__)
 CORS(app)
+
+print("Loading bad words from the database...")
+load_bad_words()  ## load bad words from the database into db_Controller.BAD_WORDS_KEEPER
+
+
 
 def get_url_extended(shortened_url: str):
 
@@ -15,6 +23,7 @@ def get_url_extended(shortened_url: str):
          
         response = requests.head(shortened_url, allow_redirects=False, timeout=TIMEOUT_SECONDS)
 
+        redirected_urls.append(shortened_url)
         while 'Location' in response.headers:
 
             next_url = response.headers['Location']
@@ -25,8 +34,7 @@ def get_url_extended(shortened_url: str):
             ##redirected_urls.append(response.url)
             ##response = requests.get(response.url, allow_redirects=False, timeout=TIMEOUT_SECONDS)
 
-        if redirected_urls == []:
-            return [shortened_url], shortened_url
+        
     
         Last_Redircet = redirected_urls [len(redirected_urls) - 1]
         
@@ -59,6 +67,19 @@ def extend_url():
 @app.route('/test', methods=['GET'])
 def test():
     return jsonify({'message': 'Hello, World!'}), 200
+
+
+
+
+@app.route('/scan', methods=['GET'])
+def scan():
+    bad_words_list = request.args.get('email_words_list')
+    if not bad_words_list:
+        return jsonify({'error': 'Bad words list is not provided or does not exist'}), 400
+    
+
+    bad_words = check_for_bad_words(bad_words_list)
+    return jsonify({'bad_words': bad_words}), 200
 
 
 if __name__ == '__main__':

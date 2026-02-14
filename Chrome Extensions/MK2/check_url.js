@@ -23,7 +23,7 @@ const Calculate_Risk_Level = () => {
         console.log("Value:", value);
         risk_level += value;
     }
-    console.log("Risk level holder:", Risk_Level);
+    console.log("Risk level holder:", JSON.stringify(Risk_Level)); // snapshot to avoid DevTools live-reference confusion
     const average_risk_level = risk_level / Object.keys(Risk_Level).length;
     const final_risk_level = Math.ceil(average_risk_level * 2) / 2;
     console.log("Final Risk Level (rounded up to .5):", final_risk_level);
@@ -238,18 +238,31 @@ const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol) => {
     
 }
 
-const Analyze_Link_Text = (url_href, url_text) => {
+const Analyze_Link_Text = (url_href, url_text, url_extended) => {
     console.log("Analyzing link text:", url_text);
-    const {url_short, url_redirects, url_tld} = Verify_URL(url_text)
-    console.log("Text short:", url_short);
+    console.log("Analyzing link extended:", url_extended);
+    
+    const {url_short: url_href_verified, url_redirects: url_href_redirects, url_tld: url_href_tld} = Verify_URL(url_href) // original url short
+    const {url_short: url_extended_verified, url_redirects: url_extended_redirects, url_tld: url_extended_tld} = Verify_URL(url_extended) //extended url short
+    const {url_short: url_text_verified, url_redirects: url_text_redirects, url_tld: url_text_tld} = Verify_URL(url_text) //text url short
 
-    console.log("URL short:", url_href);
-    if (url_href ==url_short) {
+    console.log("Href short verified:", url_href_verified);
+    console.log("Extended short verified:", url_extended_verified);
+    console.log("Text short verified:", url_text_verified);
+    
+
+    if (url_href_verified == url_extended_verified && url_text_verified == url_extended_verified  &&  url_href_verified== url_text_verified) {
         Update_Risk_Level("Link_Text", 1);
+    }
+    else if (url_extended_verified == url_text_verified){
+        Update_Risk_Level("Link_Text", 3);
+        console.log("Link redirects to the correct domain"); //but the text has a redirect before reaching the domain as the href stored
     }
     else {
         Update_Risk_Level("Link_Text", 5);
+        console.log("Link text does not match the href and extended"); //but the text has a redirect before reaching the domain as the href stored
     }
+
 }
 
 const Analyze_URL_Chain_Redirects = async (url) => { // check if the url redirects to websites of other domains
@@ -262,6 +275,44 @@ const Analyze_URL_Chain_Redirects = async (url) => { // check if the url redirec
     const url_extended = data.extended_url;
     const url_original = data.original_url;
     const url_all = data.all_urls;
+
+    if (url_extended == null || url_extended == undefined || url_extended == "") {
+        console.error("No URL extended found");
+        return null;
+    }
+
+    if (url_all.length == 1 && url_original == url_extended){
+        Update_Risk_Level("URL_Chain_Redirects", 1);
+        console.log("URL chain redirects contains one");
+    }
+    else if (url_all.length == 2 && url_original != url_extended){
+        Update_Risk_Level("URL_Chain_Redirects", 2);
+        console.log("URL chain redirects contains 2 URLs");
+    }
+    else if (url_all.length == 3 && url_original != url_extended){
+        Update_Risk_Level("URL_Chain_Redirects", 3);
+        console.log("URL chain redirects contains 2 URLs but original is not the same as extended");
+    }
+    else if (url_all.length > 3 && url_original != url_extended){
+        Update_Risk_Level("URL_Chain_Redirects", 5);
+        console.log("URL chain redirects contains multiple URLs");
+    }
+    else if (url_all.length <= 0 && url_original == url_extended){
+        Update_Risk_Level("URL_Chain_Redirects", 0); //1 url original is 
+        console.error("URL chain redirects contains zero urls error");
+    }
+    else {
+        Update_Risk_Level("URL_Chain_Redirects", 0);
+        console.error("URL error occured");
+    }
+
+
+
+    console.log("URL extended:", url_extended);
+    console.log("URL original:", url_original);
+    console.log("URL all:", url_all);
+
+    return url_extended;
 
 
 }
@@ -329,18 +380,28 @@ async function Check_URL(url, link_text) {
     console.warn("CHECKING_URL.JS:", url);
     console.log("Link text:", link_text);
 
+    // Reset Risk_Level so each URL analysis starts fresh (avoids stale data from previous links)
+    Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0 };
+
+    const url_extended = await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains (we wnat final destitinaton url)
+
+    if (url_extended == null) {
+        console.error("No URL extended found");
+        return null;
+    }
+    
     const API_Keys = await Access_Cookies_API();
     const API_WHOISJSON = API_Keys[0];
     const API_Virus_Total = API_Keys[1];
     console.log("API_Keys:", API_WHOISJSON + " " + API_Virus_Total);
     
 
-    const {url_short, url_redirects, url_tld, url_protocol} = Verify_URL(url) || {};
+    const {url_short, url_redirects, url_tld, url_protocol} = Verify_URL(url_extended) || {};
     console.log("Normalised URL:", url_short);
     console.log("URL Redirects:", url_redirects);
     console.log("URL TLD:", url_tld);
 
-    await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains
+    
 
     const whois_data = await Get_WHOIS_Data(url_short, API_WHOISJSON);
     if (whois_data) {
@@ -355,7 +416,7 @@ async function Check_URL(url, link_text) {
             Update_Risk_Level("Link_Text", 1); //no text likley an image link
         }
         else {
-            Analyze_Link_Text(url_short, link_text);
+            Analyze_Link_Text(url_short, link_text, url_extended);
         }
         return Calculate_Risk_Level();
     }

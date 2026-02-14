@@ -78,6 +78,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
             console.log("URL API test data:", data);
             sendResponse(data);
         }
+
+        if (message.action === "URL-API-Background-3") {
+            const enpoint = `http://localhost:5000/scan?email_words_list=${encodeURIComponent(message.email_words_list)}`;
+            const response = await fetch(enpoint);
+            const data = await response.json();
+            console.log("URL API test data:", data);
+            sendResponse(data);
+        }
     })(); //close async function
     return true; // respond async  need to keep the port open
 });
