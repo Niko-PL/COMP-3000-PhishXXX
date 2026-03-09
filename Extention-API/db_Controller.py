@@ -9,7 +9,7 @@ BAD_WORDS_KEEPER = set()
 
 
 
-def tokenize(text: str): ##tokenize the text into a list of words (turn text into a list of words)
+def tokenize(text: str): ##tokenize the text (turn text into a list of words)
     return re.findall(r'\b\w+\b', text.lower())
 
 

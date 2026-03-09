@@ -71,9 +71,10 @@ def test():
 
 
 
-@app.route('/scan', methods=['GET'])
+@app.route('/scan', methods=['POST'])
 def scan():
-    bad_words_list = request.args.get('email_words_list')
+    data = request.get_json()
+    bad_words_list = data.get('email_words_list')
     if not bad_words_list:
         return jsonify({'error': 'Bad words list is not provided or does not exist'}), 400
     

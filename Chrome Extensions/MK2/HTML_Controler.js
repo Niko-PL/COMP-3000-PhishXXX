@@ -9,9 +9,9 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
 
         //load all the buttones for main ui
-        const Button_HTML = document.getElementById("run_getHTML");
+        //const Button_HTML = document.getElementById("run_getHTML");
         const Button_Highlight = document.getElementById("run_highlighter");
-        const Button_Scraper = document.getElementById("run_scraper");
+        //const Button_Scraper = document.getElementById("run_scraper");
         const Status = document.getElementById("status");
         let tabID = null;
 
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     };*/
 
     //buttons contorleer
-    if (!Button_HTML || !Button_Highlight || !Button_Scraper || !Status) {
+    if (!Button_Highlight || !Status) {
         console.error("Button or Status not found!");
         return;  //if ui not loaded dont do anything
     };
@@ -468,11 +468,11 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     //These guys do the listenting
     //------------------------------------------------------------------
 
-    
+    /*
     Button_HTML.addEventListener("click", () => {
         Update_Status("<MAIN> Initiating...", true,true);
         MAIN(); //inject the scripts into the tab
-    });
+    });*/
     Button_Highlight.addEventListener("click", async () => {
         Update_Status("Highlight Initiating...",true,true);
         await MAIN(); //inject the scripts into the tab
@@ -484,10 +484,11 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         }
         
     });
+    /*
     Button_Scraper.addEventListener("click", () => {
         Update_Status("Scraper Initiating...",true,true);
         MAIN(); //inject the scripts into the tab
-    });
+    });*/
     
     Settings_Button.addEventListener("click", Settings_Expander); //add event listener to the settings button (little cog)
     Security_Button.addEventListener("click", Security_Expander); //add event listener to the security button (little shield)

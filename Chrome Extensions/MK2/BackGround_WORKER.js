@@ -67,7 +67,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
           const enpoint = `http://localhost:5000/extend?short_url=${encodeURIComponent(url)}`;
           const response = await fetch(enpoint);
           const data = await response.json();
-          console.log("URL API data:", data);
+
           sendResponse(data);
         }
 
@@ -75,15 +75,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
             const enpoint = `http://localhost:5000/test`;
             const response = await fetch(enpoint);
             const data = await response.json();
-            console.log("URL API test data:", data);
+
             sendResponse(data);
         }
 
         if (message.action === "URL-API-Background-3") {
-            const enpoint = `http://localhost:5000/scan?email_words_list=${encodeURIComponent(message.email_words_list)}`;
-            const response = await fetch(enpoint);
+            const enpoint = `http://localhost:5000/scan`;
+            const response = await fetch(enpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({email_words_list: message.email_words_list})});
             const data = await response.json();
-            console.log("URL API test data:", data);
+
             sendResponse(data);
         }
     })(); //close async function

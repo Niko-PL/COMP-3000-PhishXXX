@@ -137,10 +137,7 @@ Word_Regex = async (email) => {
     console.warn("Word_Regex: Email words list:", email);
     console.warn("Word_Regex: Sending message to background worker");
 
-    const email2 = email.replaceAll(' ', '%20');
-    console.warn("Word_Regex: Email words list 2:", email2);
-
-    const result = await chrome.runtime.sendMessage({action: "URL-API-Background-3", email_words_list: email2});
+    const result = await chrome.runtime.sendMessage({action: "URL-API-Background-3", email_words_list: email});
     console.warn("URL API test data:", result);
     try {
         Bad_Words_Regex = [...new Set(result.bad_words)].filter(Boolean);
@@ -154,7 +151,7 @@ Word_Regex = async (email) => {
         return null;
     }
 
-    const ESCAPED_REGEX = Bad_Words_Regex.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"); // Escaped REGEX chars
+    const ESCAPED_REGEX = Bad_Words_Regex.map(w => w.replace(/[.*+?^${}()|[\]\\]/gi, "\\$&")).join("|"); // Escaped REGEX chars
 
     New_Regex = new RegExp(`\\b(${ESCAPED_REGEX})\\b`, "gi");
     console.log("New Regex:", New_Regex);  //TEST remove this (boi gonna be long)
@@ -358,18 +355,35 @@ Inject_CSS = () => { //inject the css into the head of the document
 
 }
 
+Clean_Email_Body = (email) => {
+    console.log("email in CLean_Email_Body:", email);
+
+    let cleaned_email = [];
+    const walker = document.createTreeWalker(email, NodeFilter.SHOW_TEXT, null, false); //create a tree walker 
+    let node;
+    while (node = walker.nextNode()) {
+        const parent = node.parentElement;
+        if (!parent.closest('a')) {  // spip links text (HREF)
+            cleaned_email.push(node.textContent.trim()); //add the text to the result
+        }
+    }
+    return cleaned_email.filter(Boolean).join(" "); //join the result with a space and send it back
+}
+
 Scan_Email = async () => {
     console.log("Highlighting words");
 
     const Email_Body = document.querySelectorAll(".a3s"); //hmtl <.a3s> for gmail email body
     
     if (Email_Body.length > 0) {
-        console.log("Email Body found");
+        console.log("Email Body found ");
 
 
-        const emailBodyString_Text = Array.from(Email_Body).map(el => el.textContent).join("");
-        console.warn("Scan_Email: Email body text:", emailBodyString_Text);
-        Highlight_Words(Email_Body, await Word_Regex(emailBodyString_Text));
+        const emailBodyString_Text = Array.from(Email_Body).map(email => Clean_Email_Body(email)).join("\n");
+    
+        console.log("Cleaned Email Body String Text:", emailBodyString_Text);
+        const low_cleanedEmailBodyString_Text = emailBodyString_Text.toLowerCase();
+        Highlight_Words(Email_Body, await Word_Regex(low_cleanedEmailBodyString_Text));
         Highlight_Url_HREF(Email_Body);
     }
     else {

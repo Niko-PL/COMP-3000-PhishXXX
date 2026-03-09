@@ -3,7 +3,7 @@ console.log("URL checker Loaded");
 
 const Bad_Endings = [".exe", ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".iso",".dmg", ".pkg", ".deb", ".rpm", ".msi", ".py",".bat", ".cmd", ".com", ".ps1", ".vbs", ".js", ".scr", ".pif", ".reg",".sh", ".bin", ".run", ".pl", ".cgi",".app", ".command", ".jar", ".pyc", ".apk", ".appimage", ".wsf", ".gadget"];
 
-const VIRUS_API_Key = "5c41436729aacdbe8c02d1707744c3d35b1c51987eabe3de4163086541115f3f";
+
 
 const GDPR_Country_TLDs = [".at",".be",".bg",".hr",".cy",".cz",".dk",".ee",".fi",".fr",".de",".gr",".hu",".ie",".it",".lv",".lt",".lu",".mt",".nl",".pl",".pt",".ro",".sk",".si",".es",".se",".is",".li",".no",".eu",".uk",".com",".org",".edu",".tv"];
 //and tuvalu country for tv as in televesion
