@@ -19,12 +19,17 @@ const Update_Risk_Level = (Risk, Level) => {
 
 const Calculate_Risk_Level = () => {
     let risk_level = 0;
+    let valid_values = 0;
     for (const value of Object.values(Risk_Level)) {
         console.log("Value:", value);
-        risk_level += value;
+        if (value != 0) {
+            risk_level += value;
+            valid_values++;
+        }
+        
     }
-    console.log("Risk level holder:", JSON.stringify(Risk_Level)); // snapshot to avoid DevTools live-reference confusion
-    const average_risk_level = risk_level / Object.keys(Risk_Level).length;
+    console.log("Risk level holder:", JSON.stringify(Risk_Level)); 
+    const average_risk_level = risk_level / valid_values;
     const final_risk_level = Math.ceil(average_risk_level * 2) / 2;
     console.log("Final Risk Level (rounded up to .5):", final_risk_level);
     return final_risk_level;
@@ -175,8 +180,12 @@ const Analyze_Expiration_Date = (data) => {  //expired means no good
     }
 }
 
-const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol) => {
+const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol,mode) => {
     console.warn("Analyzing Virus Total for:", url);
+    console.log("Mode:", mode);
+    console.log("URL:", url);
+    console.log("API Key:", API_Virus_Total);
+    console.log("URL protocol:", url_protocol);
 
     if (url != url.includes("www.")) {
         url = "www." + url;
@@ -206,7 +215,7 @@ const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol) => {
     }
     else if (VT_Suspicious > 0) {
         console.warn("Virus Total is suspicious");
-        Update_Risk_Level("Virus_Total", 4);
+        Update_Risk_Level("Virus_Total", 3);
         return true;
     }
     else if (VT_Harmless > 0) {
@@ -216,18 +225,18 @@ const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol) => {
     }
     else if (VT_Undetected > 0) {
         console.warn("Virus Total is undetected");
-        Update_Risk_Level("Virus_Total", 3);
+        Update_Risk_Level("Virus_Total", 2);
         return true;
     }
     else {
         console.warn("Virus Total is unknown passed all checks");
-        Update_Risk_Level("Virus_Total", 3);
+        Update_Risk_Level("Virus_Total", 0);
         return false;
     }
     }
     catch (error) {
         console.warn("Virus Total error:", error);
-        Update_Risk_Level("Virus_Total", 3);
+        Update_Risk_Level("Virus_Total", 0);
     }
 
 
@@ -267,14 +276,23 @@ const Analyze_Link_Text = (url_href, url_text, url_extended) => {
 
 const Analyze_URL_Chain_Redirects = async (url) => { // check if the url redirects to websites of other domains
 
-    const enpoint = `http://localhost:5000/extend?short_url=${encodeURIComponent(url)}`;
-    const response = await fetch(enpoint);
-    const data = await response.json();
-    console.log("URL chain redirects data:", data);
+    
+    const result = await chrome.runtime.sendMessage({
+        action: "URL-API-Background-1",
+    });
+    console.log("URL API test data:", result.error);
 
-    const url_extended = data.extended_url;
-    const url_original = data.original_url;
-    const url_all = data.all_urls;
+    if (result.error == "Error during fetch operation:") {
+        return result.error;
+    }
+
+    if (result.error && result.error.includes("404")) {
+        return null;
+    }
+
+    const url_extended = result.extended_url;
+    const url_original = result.original_url;
+    const url_all = result.all_urls;
 
     if (url_extended == null || url_extended == undefined || url_extended == "") {
         console.error("No URL extended found");
@@ -291,7 +309,7 @@ const Analyze_URL_Chain_Redirects = async (url) => { // check if the url redirec
     }
     else if (url_all.length == 3 && url_original != url_extended){
         Update_Risk_Level("URL_Chain_Redirects", 3);
-        console.log("URL chain redirects contains 2 URLs but original is not the same as extended");
+        console.log("URL chain redirects contains 3 URLs");
     }
     else if (url_all.length > 3 && url_original != url_extended){
         Update_Risk_Level("URL_Chain_Redirects", 5);
@@ -324,6 +342,8 @@ const TEST_URL_Chain_Redirects = async (url) => {
         action: "URL-API-Background-2",
     });
     console.log("URL API test data:", result);
+
+
 }
 
 
@@ -383,13 +403,26 @@ async function Check_URL(url, link_text) {
     // Reset Risk_Level so each URL analysis starts fresh (avoids stale data from previous links)
     Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0 };
 
-    const url_extended = await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains (we wnat final destitinaton url)
+    let url_extended = await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains (we wnat final destitinaton url)
 
     if (url_extended == null) {
-        console.error("No URL extended found");
-        return null;
+        console.error("No URL extended likley due to server down found massive error");
+        const server_alive = await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
+        if (server_alive) {
+            url_extended = await Analyze_URL_Chain_Redirects(url);
+        }
+        else {
+            console.error("Server is not alive")
+        }
+          
     }
     
+    if (url_extended == null) {
+        console.error("No URL extended found using original url");
+        url_extended = url;
+    }
+
+
     const API_Keys = await Access_Cookies_API();
     const API_WHOISJSON = API_Keys[0];
     const API_Virus_Total = API_Keys[1];
@@ -407,10 +440,11 @@ async function Check_URL(url, link_text) {
     if (whois_data) {
         let virus_total_attempts = 0;
         await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
-        let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol);
-        while (!virus_total_result && virus_total_attempts < 5) {
+        let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,1);
+        
+        while (!virus_total_result && virus_total_attempts < 5 && Risk_Level.Virus_Total != 0) {
             virus_total_attempts++;
-            virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol);
+            virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,2);
         }
         if (link_text == 'Image//Link//This//is//an//image//link') {
             Update_Risk_Level("Link_Text", 1); //no text likley an image link

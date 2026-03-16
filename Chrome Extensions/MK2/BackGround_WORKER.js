@@ -2,7 +2,33 @@
 // as the CORS policy blocks it running in Check_url ffs
 // should be a background worker and apear in extention as so (liitle red)
 
+const Test_Hussar_API = async () => {
+  const enpoint = `http://localhost:5000/test`;
+  try {
+  const response = await fetch(enpoint);
+    const data = await response.json();
+
+    return data;
+  }
+  catch (error) {
+    console.error("Error during fetch operation:", error);
+    return {error: "Error during fetch operation"};
+  }
+}
+
+
+const Alive_Hussar_API = async () => {
+  try {
+    const response = await fetch(`http://localhost:5000/test`, { method: "GET" });
+    return response;
+  } catch (error) {
+    console.error("Server ping failed:", error);
+    return false;
+  }
+};
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run on message received
+
     console.log("Message received:", message);
     console.log("Sender:", sender);
 
@@ -65,18 +91,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
           console.log("URL API requested");
           const url = message.url;
           const enpoint = `http://localhost:5000/extend?short_url=${encodeURIComponent(url)}`;
+          try {
           const response = await fetch(enpoint);
           const data = await response.json();
 
           sendResponse(data);
+          }
+          catch (error) {
+            console.error("Error during fetch operation:", error);
+            sendResponse({error: "Error during fetch operation"});
+          }
         }
 
         if (message.action === "URL-API-Background-2") {
-            const enpoint = `http://localhost:5000/test`;
-            const response = await fetch(enpoint);
-            const data = await response.json();
-
-            sendResponse(data);
+          
+          const response = await Test_Hussar_API();
+          if (response.error && response.error.includes("404")) {
+            sendResponse({error: "Error during fetch operation api may be down"});
+          }
+          else {
+            sendResponse(response);
+          }
         }
 
         if (message.action === "URL-API-Background-3") {
@@ -87,10 +122,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({email_words_list: message.email_words_list})});
+            try {
             const data = await response.json();
 
             sendResponse(data);
+            }
+            catch (error) {
+              console.error("Error during fetch operation:", error);
+              sendResponse({error: "Error during fetch operation"});
+              }
+
+            }
+
+        if (message.action === "Alive_Hussar_API") {
+          const response = await Alive_Hussar_API();
+          sendResponse(response);
         }
+        
     })(); //close async function
     return true; // respond async  need to keep the port open
 });

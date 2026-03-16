@@ -16,6 +16,8 @@ const URL_CLASS = "PhishHussar-highlighted-url";
 
 let Warning_Message_Div = null; //global variable for warning message user is hovering over
 
+let Alive_Hussar_API_Status = false;
+
 console.log("Bad Words:", Bad_Words);
 console.log("Warnings:", Warnings);
 
@@ -139,6 +141,10 @@ Word_Regex = async (email) => {
 
     const result = await chrome.runtime.sendMessage({action: "URL-API-Background-3", email_words_list: email});
     console.warn("URL API test data:", result);
+    if (result.error) {  
+        console.error("Error during fetch operation:", result.error);
+        return null;
+    }
     try {
         Bad_Words_Regex = [...new Set(result.bad_words)].filter(Boolean);
     }
@@ -283,6 +289,7 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
 
             let risk = await Check_URL(link_href, link_text);
 
+
             if (risk == null || risk == undefined) {
                 console.error("Risk is null");
                 return;
@@ -383,7 +390,21 @@ Scan_Email = async () => {
     
         console.log("Cleaned Email Body String Text:", emailBodyString_Text);
         const low_cleanedEmailBodyString_Text = emailBodyString_Text.toLowerCase();
-        Highlight_Words(Email_Body, await Word_Regex(low_cleanedEmailBodyString_Text));
+        print
+        try 
+        {
+            if (Alive_Hussar_API_Status) {
+                Highlight_Words(Email_Body, await Word_Regex(low_cleanedEmailBodyString_Text));
+            }
+            else {
+                console.error("Server is not alive");
+            }
+        }
+        catch (error) {
+            console.error("Error highlighting words:", error);
+            return "Error highlighting words";
+        }
+
         Highlight_Url_HREF(Email_Body);
     }
     else {
@@ -395,6 +416,15 @@ Scan_Email = async () => {
 
 const MAIN = async () => {
     Inject_CSS(); //we inject the css for highlt
+    Alive_Hussar_API_Status = await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
+    console.log("Alive_Hussar_API_Status:", Alive_Hussar_API_Status);
+    if (Alive_Hussar_API_Status) {
+        console.log("Server is alive");
+    }
+    else {
+        console.error("Server is not alive");
+    }
+
     await Scan_Email();
 
     /*if (window.gmail_loaded){ //if its true then gmail is loaded and highlighted and highlighted words

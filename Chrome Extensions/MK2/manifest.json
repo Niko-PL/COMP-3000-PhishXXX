@@ -12,7 +12,7 @@
     "256": "images/Guard_MK1.png"
   },
   "permissions": ["tabs", "storage", "scripting", "activeTab"],
-  "host_permissions": ["https://script.google.com/macros/*","https://mail.google.com/*","https://www.virustotal.com/*", "http://localhost:5000/*"],
+  "host_permissions": ["https://mail.google.com/*","https://www.virustotal.com/*", "http://localhost:5000/*"],
   "background": {
     "service_worker": "BackGround_WORKER.js"
     
