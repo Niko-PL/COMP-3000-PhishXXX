@@ -1,4 +1,4 @@
-dockerfile# Use official Python base image
+
 FROM python:3.11-slim
 
 
@@ -16,5 +16,4 @@ COPY cert.pem key.pem ./
 
 EXPOSE 5443
 
-# Run the app with gunicorn (production-ready server)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5443", "--certfile=cert.pem", "--keyfile=key.pem", "app:app"]

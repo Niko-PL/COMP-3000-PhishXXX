@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Gmail Logger Mk3</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="in-line">
+      <img id="logo" src="images/Guard_MK1.png" alt="Guard MK1 Logo">
+      <h3>Gmail Logger Mk2</h3>
+      <button type="button" class="settings-button" id="settings_button" aria-expanded="false">&#9881;</button>
+      <button type="button" class="settings-button" id="security_button" aria-expanded="false">&#128737;</button>
+    </div>
+
+    
+
+    <div id="security_section" class="security-section-hidden" aria-hidden="true">
+      <h5>Security Settings</h5>
+      <label>Highlight on Open</label>
+      <div class="switch-row">
+        <h4 class="switch_text_left">NO</h4>
+        <label class="switch">
+          <input type="checkbox" id="highlight_on_open">
+          <span class="slider round"></span>
+        </label>
+        <h4 class="switch_text_right">YES</h4>
+      </div>
+
+      <label>Improve Firebase</label>
+      <div class="switch-row">
+        <h4 class="switch_text_left">NO</h4>
+        <label class="switch">
+          <input type="checkbox" id="improve_firebase">
+          <span class="slider round"></span>
+        </label>
+        <h4 class="switch_text_right">YES</h4>
+      </div>
+
+
+      <label>Use AI for Highlighting</label>
+      <div class="switch-row">
+        <h4 class="switch_text_left">NO</h4>
+        <label class="switch">
+          <input type="checkbox" id="use_ai">
+          <span class="slider round"></span>
+        </label>
+        <h4 class="switch_text_right">YES</h4>
+      </div>
+    </div>
+    
+    
+    <div id= settings_section class="settings-section-hidden" aria-hidden="true" >
+      <h5>Keep empty for defaults</h5>
+      
+      
+
+      <label> WHOIS JSON API Key:</label>
+      
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <input type="text" id="WHOISJSON_API_KEY" placeholder="Enter WHOIS JSON API Key" title="WHOIS JSON API Key Paste Here"/>
+        <button type="button" id="WHOISJSON_API_KEY_Looker" title="View API Key">&#x1F441;</button>
+      </div>
+
+      <button type="button" id="WHOISJSON_API_KEY_button" aria-expanded="false">Set API Key</button>
+
+      <label> Virus Total API Key:</label>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <input type="text" id="Virus_Total_API_KEY" placeholder="Enter Virus Total API Key" title="Virus Total API Key Paste Here"/>
+        <button type="button" id="Virus_Total_API_KEY_Looker" title="View API Key">&#x1F441;</button>
+      </div>
+      
+      <button type="button" id="Virus_Total_API_KEY_button" aria-expanded="false">Set API Key</button>
+      
+      
+    </div>
+    
+
+
+    <button id="run_highlighter">Highlight Words</button>
+    
+    <p id="status"></p>
+    <script src="SECRETS.js"></script>
+    <script src="check_url.js"></script>
+    <script src="HTML_Controler.js"></script>
+
+
+  </body>
+</html>
+
+<!-- HERE IS THE OLD CODE FOR THE SETTINGS SECTION
+<button id="run_scraper">Scrape Emails</button>
+<button id="run_getHTML">RUN_GET_HTML_BUTTON</button>
+<label> Sheet ID:</label>
+<input type="text" id="sheetId" placeholder="Enter Google Sheet ID"/>
+
+<label>Time Range:</label>
+      <select id="time_range">
+        <option value="1">1 day (24h)</option>
+        <option value="7">1 week</option>
+        <option value="14">2 weeks</option>
+        <option value="30">1 month</option>
+        <option value="90">3 months</option>
+        <option value="180">6 months</option>
+        <option value="365">1 year</option>
+        <option value="0">All time</option>
+      </select>
+      <label><input type="checkbox" id="clear_sheet"> Clear previous data</label>
+
+<label>Sheet Name:</label>
+      <input type="text" id="sheet_name" placeholder="Enter sheet name">
+      
+      <label>Number of Emails Recorded:</label>
+      <input type="number" id="emails_recorded" min="1" max="1000000" placeholder="Enter number of emails to record"/>
+
+<div id="test_section" class="test-section-hidden" aria-hidden="true">
+      <h5>Test Section</h5>
+      <input type="text" id="URL_input" placeholder="example https://example.com">
+      <button type="button" id="URL_check_button" aria-expanded="false">Check</button>
+    </div>
+
+
+
+
+
+-->

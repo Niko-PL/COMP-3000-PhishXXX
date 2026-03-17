@@ -133,7 +133,7 @@ def extend_url():
 
 
 @app.route('/test', methods=['GET'])
-@limiter.limit("2 per minute")
+@limiter.limit("5 per minute")
 def test():
     return jsonify({'message': 'Hello, World!'}), 200
 
@@ -155,5 +155,5 @@ def scan():
 
 if __name__ == '__main__':
     print("Starting the application...")
-    app.run(debug=True) ##delete this
+    app.run(debug=True, host='0.0.0.0', port=5443, ssl_context=('cert.pem', 'key.pem'))
     print("Application is Shutting Down...")
