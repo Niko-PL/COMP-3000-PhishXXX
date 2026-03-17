@@ -390,7 +390,7 @@ Scan_Email = async () => {
     
         console.log("Cleaned Email Body String Text:", emailBodyString_Text);
         const low_cleanedEmailBodyString_Text = emailBodyString_Text.toLowerCase();
-        print
+        
         try 
         {
             if (Alive_Hussar_API_Status) {
@@ -416,14 +416,16 @@ Scan_Email = async () => {
 
 const MAIN = async () => {
     Inject_CSS(); //we inject the css for highlt
-    Alive_Hussar_API_Status = await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
-    console.log("Alive_Hussar_API_Status:", Alive_Hussar_API_Status);
-    if (Alive_Hussar_API_Status) {
-        console.log("Server is alive");
-        Hussar_API_Status = true;
+    const response = await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
+    console.log("Alive_Hussar_API_Status:", response);
+    
+    if (response==true) {
+        console.log("Server is alive 1st point of contact");
+        Alive_Hussar_API_Status = true;
     }
     else {
-        console.error("Server is not alive");
+        Alive_Hussar_API_Status = false;
+        console.error("Server is not alive 1st point of contact");
     }
 
     await Scan_Email();

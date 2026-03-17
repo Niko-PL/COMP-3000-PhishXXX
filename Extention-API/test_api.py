@@ -6,12 +6,7 @@ Make sure the API is running first: python app.py
 
 import requests
 
-BASE_URL = "https://127.0.0.1:5443"
-VERIFY_SSL = False  # Self-signed cert, disable SSL verification for tests
-
-# Suppress SSL warnings for self-signed cert
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+BASE_URL = "http://127.0.0.1:5443"
 
 PASS = "\033[92m PASS \033[0m"
 FAIL = "\033[91m FAIL \033[0m"
@@ -43,51 +38,51 @@ def check(name, response, expected_status, expected_key=None, expected_value=Non
 # ── /test ─────────────────────────────────────────────────────────────────────
 print(SECTION.format("\n══ /test ══"))
 
-r = requests.get(f"{BASE_URL}/test", verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/test")
 check("Health check returns 200 + message", r, 200, "message", "Hello, World!")
 
 
 # ── /extend ───────────────────────────────────────────────────────────────────
 print(SECTION.format("\n══ /extend ══"))
 
-r = requests.get(f"{BASE_URL}/extend", params={"short_url": "https://www.google.com"}, verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend", params={"short_url": "https://www.google.com"})
 check("Valid HTTPS URL returns 200", r, 200)
 
-r = requests.get(f"{BASE_URL}/extend", params={"short_url": "https://bit.ly/3Qexample"}, verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend", params={"short_url": "https://bit.ly/3Qexample"})
 check("Short URL resolves (may 200 or 400 depending on URL)", r, 200)
 
-r = requests.get(f"{BASE_URL}/extend", verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend")
 check("Missing short_url param returns 400", r, 400)
 
-r = requests.get(f"{BASE_URL}/extend", params={"short_url": "notaurl"}, verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend", params={"short_url": "notaurl"})
 check("No scheme URL blocked → 400", r, 400)
 
-r = requests.get(f"{BASE_URL}/extend", params={"short_url": "file:///etc/passwd"}, verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend", params={"short_url": "file:///etc/passwd"})
 check("file:// scheme blocked → 400", r, 400)
 
-r = requests.get(f"{BASE_URL}/extend", params={"short_url": "ftp://example.com"}, verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend", params={"short_url": "ftp://example.com"})
 check("ftp:// scheme blocked → 400", r, 400)
 
-r = requests.get(f"{BASE_URL}/extend", params={"short_url": "http://192.168.1.1"}, verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend", params={"short_url": "http://192.168.1.1"})
 check("IP address URL blocked → 400", r, 400)
 
-r = requests.get(f"{BASE_URL}/extend", params={"short_url": "http://127.0.0.1"}, verify=VERIFY_SSL)
+r = requests.get(f"{BASE_URL}/extend", params={"short_url": "http://127.0.0.1"})
 check("Loopback IP blocked → 400", r, 400)
 
 
 # ── /scan ──────────────────────────────────────────────────────────────────────
 print(SECTION.format("\n══ /scan ══"))
 
-r = requests.post(f"{BASE_URL}/scan", json={"email_words_list": "click here to verify your account login password"}, verify=VERIFY_SSL)
+r = requests.post(f"{BASE_URL}/scan", json={"email_words_list": "click here to verify your account login password"})
 check("Phishing words detected → 200 with bad_words", r, 200)
 
-r = requests.post(f"{BASE_URL}/scan", json={"email_words_list": "hello how are you"}, verify=VERIFY_SSL)
+r = requests.post(f"{BASE_URL}/scan", json={"email_words_list": "hello how are you"})
 check("Clean text → 200 with empty bad_words", r, 200)
 
-r = requests.post(f"{BASE_URL}/scan", json={}, verify=VERIFY_SSL)
+r = requests.post(f"{BASE_URL}/scan", json={})
 check("Missing email_words_list → 400", r, 400)
 
-r = requests.post(f"{BASE_URL}/scan", data="not json", headers={"Content-Type": "text/plain"}, verify=VERIFY_SSL)
+r = requests.post(f"{BASE_URL}/scan", data="not json", headers={"Content-Type": "text/plain"})
 check("Wrong Content-Type → 400", r, 400)
 
 
@@ -101,7 +96,6 @@ r = requests.options(
         "Access-Control-Request-Method": "POST",
         "Access-Control-Request-Headers": "Content-Type"
     },
-    verify=VERIFY_SSL
 )
 print(f"[INFO] OPTIONS /scan → HTTP {r.status_code} | Access-Control-Allow-Origin: {r.headers.get('Access-Control-Allow-Origin', 'NOT SET')}")
 
@@ -111,7 +105,7 @@ print(SECTION.format("\n══ Rate limit (/test limit: 2/min) ══"))
 
 results = []
 for i in range(3):
-    r = requests.get(f"{BASE_URL}/test", verify=VERIFY_SSL)
+    r = requests.get(f"{BASE_URL}/test")
     results.append(r.status_code)
     print(f"         Request {i+1}: HTTP {r.status_code}")
 

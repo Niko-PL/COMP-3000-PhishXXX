@@ -276,9 +276,8 @@ const Analyze_Link_Text = (url_href, url_text, url_extended) => {
 
 const Analyze_URL_Chain_Redirects = async (url) => { // check if the url redirects to websites of other domains
 
-    
     const result = await chrome.runtime.sendMessage({
-        action: "URL-API-Background-1",
+        action: "URL-API-Background-1", url: url
     });
     console.log("URL API test data:", result.error);
 

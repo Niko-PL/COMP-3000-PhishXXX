@@ -1,5 +1,7 @@
 from calendar import c
+import json
 from math import e
+from textwrap import shorten
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
@@ -27,11 +29,12 @@ if storage_url is None:
 
 app = Flask(__name__)
 
-limiter = Limiter( ##get remote address from the client and limit the number of requests to the server
+limiter = Limiter(  ##get remote address from the client and limit the number of requests to the server
     get_remote_address,
     app=app,
-    default_limits=["60 per minute" , "100 per second"],
-    storage_uri=storage_url
+    default_limits=["60 per minute", "100 per second"],
+    storage_uri=storage_url,
+
 )
 
 TIMEOUT_SECONDS = 10
@@ -41,7 +44,7 @@ CORS(app, resources={
         "origins": [
             f"chrome-extension://{chrome_extension_id}",
         ],
-        "methods": ["GET", "POST"],
+        "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
@@ -113,12 +116,19 @@ def get_url_extended(shortened_url: str):
     
         
   
+@app.route('/<path:path>', methods=['OPTIONS'])
+@limiter.exempt
+def options(path):
+    return "",204
 
 
-@app.route('/extend', methods=['GET'])
+@app.route('/extend', methods=['POST'])
 @limiter.limit("60 per minute;5 per second")
 def extend_url():
-    short_url = request.args.get('short_url')
+    data = request.get_json()
+    print(data)
+    short_url = data.get('url')
+    print(short_url)
     if not short_url:
         return jsonify({'error': 'Short URL is required and has not been provided or does not exist'}), 400
     
@@ -135,7 +145,11 @@ def extend_url():
 @app.route('/test', methods=['GET'])
 @limiter.limit("5 per minute")
 def test():
-    return jsonify({'message': 'Hello, World!'}), 200
+    result = jsonify({'message': 'Hello, World!'})
+    print("HERE")
+    print(result)
+    print("THERE")
+    return result, 200
 
 
 
@@ -144,6 +158,7 @@ def test():
 @limiter.limit("60 per minute;1 per second")
 def scan():
     data = request.get_json()
+    print(data)
     bad_words_list = data.get('email_words_list')
     if not bad_words_list:
         return jsonify({'error': 'Bad words list is not provided or does not exist'}), 400
@@ -155,5 +170,6 @@ def scan():
 
 if __name__ == '__main__':
     print("Starting the application...")
-    app.run(debug=True, host='0.0.0.0', port=5443, ssl_context=('cert.pem', 'key.pem'))
+    # HTTP-only (no TLS). Use a reverse proxy for HTTPS in production.
+    app.run(debug=True, host='0.0.0.0', port=5443)
     print("Application is Shutting Down...")
