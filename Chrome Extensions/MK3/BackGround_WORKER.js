@@ -51,6 +51,8 @@ const Alive_Hussar_API = async () => {
   }
 }
 
+
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run on message received
 
     console.log("Message received:", message);
@@ -83,7 +85,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
               fetch('https://www.virustotal.com/api/v3/urls', options)
               .then(response => response.json())
               .then(response => {
+                console.log("Virus Total response:", response);
                 const response_id = response.data.id;
+                console.log("Virus Total response ID:", response_id);
                 fetch(`https://www.virustotal.com/api/v3/analyses/${response_id}`, options_2)
                 .then(res => res.json())
                 .then(res => sendResponse(res))
@@ -148,6 +152,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
           const response = await Alive_Hussar_API();
           sendResponse(response);
           return;
+        }
+
+        if ( message.action === "Alive_VirusTotal_API"){
+          console.log("Virus Total alive status requested");
+            try {
+              const API_Key = message.API_Key;
+              if (!API_Key) {
+                sendResponse(false);
+                return;
+              }
+
+              const response = await fetch("https://www.virustotal.com/api/v3/users/me", {
+                method: "GET",
+                headers: {
+                  accept: "application/json",
+                  "x-apikey": API_Key
+                }
+              });
+
+              sendResponse(response.ok);
+            } catch (error) {
+              console.error("Virus Total alive check failed:", error);
+              sendResponse(false);
+            }
+            return;
         }
 
         sendResponse({ error: `Unsupported action: ${message.action}` });

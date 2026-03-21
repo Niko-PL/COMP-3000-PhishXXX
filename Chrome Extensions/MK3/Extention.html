@@ -6,7 +6,7 @@
   </head>
   <body>
     <div class="in-line">
-      <img id="logo" src="images/Guard_MK1.png" alt="Guard MK1 Logo">
+      <img id="logo" src="images/Hussar_Mk2.png" alt="Hussar MK2 Logo">
       <h3>Gmail Logger Mk3</h3>
       <button type="button" class="settings-button" id="settings_button" aria-expanded="false">&#9881;</button>
       <button type="button" class="settings-button" id="security_button" aria-expanded="false">&#128737;</button>
@@ -16,41 +16,84 @@
 
     <div id="security_section" class="security-section-hidden" aria-hidden="true">
       <h5>Security Settings</h5>
-      <label>Highlight on Open</label>
-      <div class="switch-row">
-        <h4 class="switch_text_left">NO</h4>
-        <label class="switch">
-          <input type="checkbox" id="highlight_on_open">
-          <span class="slider round"></span>
-        </label>
-        <h4 class="switch_text_right">YES</h4>
+      <div class="settings-container">
+        <label>Highlight on Open</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="highlight_on_open">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
       </div>
 
-      <label>Improve Firebase</label>
-      <div class="switch-row">
-        <h4 class="switch_text_left">NO</h4>
-        <label class="switch">
-          <input type="checkbox" id="improve_firebase">
-          <span class="slider round"></span>
-        </label>
-        <h4 class="switch_text_right">YES</h4>
+      <div class="settings-container">
+        <label>Use Hussar API</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_hussar_api">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
       </div>
 
 
-      <label>Use AI for Highlighting</label>
-      <div class="switch-row">
-        <h4 class="switch_text_left">NO</h4>
-        <label class="switch">
-          <input type="checkbox" id="use_ai">
-          <span class="slider round"></span>
-        </label>
-        <h4 class="switch_text_right">YES</h4>
+
+      <div class="settings-container">
+        <label>WHOIS API</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_whois_api">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
       </div>
+
+
+      <div class="settings-container">
+        <label>VirusTotal API</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_virustotal_api">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
+      </div>
+
+
+      <div class="settings-container">
+        <label>Use Language Processing for Highlighting</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_ai">
+            <span class="slider round"></span>
+            </label>
+            <h4 class="switch_text_right">YES</h4>
+        </div>
+      </div>
+      
     </div>
     
     
     <div id= settings_section class="settings-section-hidden" aria-hidden="true" >
       <h5>Keep empty for defaults</h5>
+
+      <label> WHOIS API User:</label>
+      
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <input type="text" id="WHOIS_USER" placeholder="Enter WHOIS API User" title="WHOIS API User Paste Here"/>
+        <button type="button" id="WHOIS_USER_Looker" title="View API User">&#x1F441;</button>
+      </div>
+
+      <button type="button" id="WHOIS_USER_button" aria-expanded="false">Set API User</button>
       
       
 
@@ -73,7 +116,21 @@
       
       
     </div>
-    
+
+    <div class="status-container">
+      <div class="status-container-item">
+        <span>Hussar Status</span>
+        <span id="Hussar_API_Status" class="status"> Offline</span>
+      </div>
+      <div class="status-container-item"> 
+        <span>WHOIS Status</span>
+        <span id="WHOIS_API_Status" class="status"> Offline</span>
+      </div>
+      <div class="status-container-item"> 
+        <span>VirusTotal Status</span>
+        <span id="Virus_Total_API_Status" class="status"> Offline</span>
+      </div>
+    </div>
 
 
     <button id="run_highlighter">Highlight Words</button>

@@ -81,7 +81,7 @@ const Verify_URL = (url) => {  // not secure not good
 
 }
 
-const Analyze_Redirects = (url_redirects) => {  // make sure no zip or exe files
+const Analyze_Paths = (url_redirects) => {  // make sure no zip or exe files
 
     //review if ending is downloadable
     const Regexed_bad_ending = new RegExp(`\(${Bad_Endings.join("|")})$`, "i");
@@ -115,17 +115,18 @@ const Analyze_TLD= (url_tld) => {  // see if registered in reputable country. Go
     }
 }
 
-const Analyze_Age = (data) => {  //low age means high risk
-    const created_date =
-        data?.created || null;
-
+const Analyze_Age = (data) => {  // low age means high risk
+    const created_date = data?.created || null;
 
     if (!created_date) {
         console.warn("No created date found in WHOIS payload");
         return;
     }
+    console.log("Created date:", created_date);
 
-    const Created_Date_Normalised   = new Date(created_date);
+    // Use native Date parsing, avoid regex
+    let Created_Date_Normalised = new Date(created_date);
+
     if (Number.isNaN(Created_Date_Normalised.getTime())) {
         console.warn("Invalid created date in WHOIS payload:", created_date);
         return;
@@ -147,35 +148,39 @@ const Analyze_Age = (data) => {  //low age means high risk
     }
 }
 
-const Analyze_Expiration_Date = (data) => {  //expired means no good
+const Analyze_Expiration_Date = (data) => {  // expired means no good
     const expiration_date = data?.expires || null;
 
     if (!expiration_date) {
-        console.error("No expiration date found in WHOIoS payload");
+        console.error("No expiration date found in WHOIS payload");
         Update_Risk_Level("Expiration_Date", 5);
         return;
     }
-    const Experation_Date_Normalised = new Date(expiration_date);
-    if (Number.isNaN(Experation_Date_Normalised.getTime())) {
+    console.log("Expiration date:", expiration_date);
+
+    // Try to create the date directly, skipping manual regex parsing
+    let expirationDateNormalized = new Date(expiration_date);
+
+    if (Number.isNaN(expirationDateNormalized.getTime())) {
         console.warn("Invalid expiration date in WHOIS payload:", expiration_date);
         Update_Risk_Level("Expiration_Date", 5);
         return;
     }
 
-    const experation_in_days = (Experation_Date_Normalised.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-    console.log("Experation in days:", experation_in_days);
+    // Use same math as Analyze_Age (from your prompt)
+    const expiration_in_days = (expirationDateNormalized.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+    console.log("Expiration in days:", expiration_in_days);
 
-  
-    if (experation_in_days <= 0 ){
+    if (expiration_in_days <= 0 ){
         console.warn("Expiration date has expired");
         Update_Risk_Level("Expiration_Date", 5);
     }
-    else if (experation_in_days >0)  {
+    else if (expiration_in_days > 0)  {
         console.log("Expiration date is in the future");
         Update_Risk_Level("Expiration_Date", 1);
     }
     else {
-        console.warn("Expiration date has an issue. Date: " + experation_in_days);
+        console.warn("Expiration date has an issue. Date: " + expiration_in_days);
         Update_Risk_Level("Expiration_Date", 5);
     }
 }
@@ -335,6 +340,7 @@ const Analyze_URL_Chain_Redirects = async (url) => { // check if the url redirec
 }
 
 
+/*
 const TEST_URL_Chain_Redirects = async (url) => {
     console.log("TESTING URL CHAIN REDIRECTS");
     const result = await chrome.runtime.sendMessage({
@@ -343,38 +349,58 @@ const TEST_URL_Chain_Redirects = async (url) => {
     console.log("URL API test data:", result);
 
 
+}*/
+
+
+const Analyze_URL = (URL_TLD,URL_Redirects) => {
+    console.log("Analyzing URL:", URL_TLD, URL_Redirects);
+    Analyze_TLD(URL_TLD);
+    Analyze_Paths(URL_Redirects);
+    console.log("URL analyzed");
 }
-
-
 
 // WHO IS DATA GET AND ANALYZE
-const Analyze_WHOIS_Data = async (data,URL_TLD,URL_Redirects) => {
+const Analyze_WHOIS_Data = async (data) => {
     Analyze_Age(data);
     Analyze_Expiration_Date(data);
-    Analyze_TLD(URL_TLD);
-    Analyze_Redirects(URL_Redirects);
 }
 
-const Get_WHOIS_Data = async (url_short, WHOISJSON_API_KEY) => {
+const Get_WHOIS_Data = async (url_short, WHOIS_USER, WHOISJSON_API_KEY) => {
     
     if (!WHOISJSON_API_KEY || WHOISJSON_API_KEY.length === 0 || WHOISJSON_API_KEY == null){
         console.error("WHOISJSON_API_KEY not found");
         return null;
     }
+    if (!WHOIS_USER || WHOIS_USER.length === 0 || WHOIS_USER == null){
+        console.error("WHOIS_USER not found");
+        return null;
+    }
     console.log("WHOISJSON_API_KEY:", WHOISJSON_API_KEY);
+    console.log("WHOIS_USER:", WHOIS_USER);
 
     if (!url_short || url_short.length === 0 || url_short == null){
         console.error("No URL provided or URL is invalid: " + url_short);
         return null;
     }
 
-    const endpoint = `https://whoisjson.com/api/v1/whois?domain=${encodeURIComponent(url_short)}`;
-    const response = await fetch(endpoint, { headers: { Authorization: `TOKEN=${WHOISJSON_API_KEY}` } });
+
+
+
+    const endpoint = `https://jsonwhoisapi.com/api/v1/whois?identifier=${encodeURIComponent(url_short)}`;
+
+    const new_key = `${WHOIS_USER}:${WHOISJSON_API_KEY}`;
+    const response = await fetch(endpoint, {
+    method: "GET",
+    headers: {
+        "Authorization": `Basic ${btoa(new_key)}`,
+        "Accept": "application/json"
+    }
+    });
     if (!response.ok) {
-        throw new Error(`WhoisJSON request failed (${response.status} ${response.statusText})`);
+        throw new Error(`jsonwhoisapi.com request failed (${response.status} ${response.statusText})`);
     }
     const data = await response.json();
-    console.log("WhoisJSON data:", data);
+    console.log("jsonwhoisapi.com data:", data);
     return data;
 }
 
@@ -386,7 +412,8 @@ const Access_Cookies_API = () => {  //get the cookies api key for who is
             // Return both keys in an array
             resolve([
                 Cookie_Data.WHOISJSON_API_KEY || "",
-                Cookie_Data.Virus_Total_API_KEY || ""
+                Cookie_Data.Virus_Total_API_KEY || "",
+                Cookie_Data.WHOIS_USER || ""
             ]);
         });
     });
@@ -399,7 +426,7 @@ async function Check_URL(url, link_text) {
     console.warn("CHECKING_URL.JS:", url);
     console.log("Link text:", link_text);
 
-    // Reset Risk_Level so each URL analysis starts fresh (avoids stale data from previous links)
+    // Reset URL starts fresh 
     Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0 };
 
     let url_extended = await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains (we wnat final destitinaton url)
@@ -423,40 +450,61 @@ async function Check_URL(url, link_text) {
 
 
     const API_Keys = await Access_Cookies_API();
+    const WHOIS_USER = API_Keys[2];
     const API_WHOISJSON = API_Keys[0];
     const API_Virus_Total = API_Keys[1];
-    console.log("API_Keys:", API_WHOISJSON + " " + API_Virus_Total);
+    console.log("API_Keys:", API_WHOISJSON + " " + API_Virus_Total + " " + WHOIS_USER);
     
 
     const {url_short, url_redirects, url_tld, url_protocol} = Verify_URL(url_extended) || {};
     console.log("Normalised URL:", url_short);
     console.log("URL Redirects:", url_redirects);
     console.log("URL TLD:", url_tld);
+    console.log("URL protocol:", url_protocol);
 
-    
-
-    const whois_data = await Get_WHOIS_Data(url_short, API_WHOISJSON);
-    if (whois_data) {
-        let virus_total_attempts = 0;
-        await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
-        let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,1);
-        
-        while (!virus_total_result && virus_total_attempts < 5 && Risk_Level.Virus_Total != 0) {
-            virus_total_attempts++;
-            virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,2);
+    let whois_data = null;
+    try{
+    whois_data = await Get_WHOIS_Data(url_short, WHOIS_USER, API_WHOISJSON);
+    }
+    catch (error) {
+        console.error("Error getting WHOIS data:", error);
+    }
+    if (whois_data != null) {
+        console.log("WHOIS data found");
+        try{
+            await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
+            console.log("WHOIS data analyzed");
         }
-        if (link_text == 'Image//Link//This//is//an//image//link') {
-            Update_Risk_Level("Link_Text", 1); //no text likley an image link
+        catch (error) {
+            console.error("Error analyzing WHOIS data:", error);
         }
-        else {
-            Analyze_Link_Text(url_short, link_text, url_extended);
-        }
-        return Calculate_Risk_Level();
     }
     else {
         console.error("No WHOIS data found");
-        return null;
     }
+
+    Analyze_URL(url_tld,url_redirects);
+
+
+    let virus_total_attempts = 0;
+    let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,1);
+    console.log("Virus total result:", virus_total_result);
+    while (!virus_total_result && virus_total_attempts < 5 && Risk_Level.Virus_Total != 0) {
+        virus_total_attempts++;
+        console.log("Virus total attempt:", virus_total_attempts);
+        virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,2);
+        console.log("Virus total result:", virus_total_result);
+    }
+    if (link_text == 'Image//Link//This//is//an//image//link') {
+        Update_Risk_Level("Link_Text", 1); //no text likley an image link
+    }
+    else {
+        Analyze_Link_Text(url_short, link_text, url_extended);
+    }
+    console.log("leaving function");
+    return Calculate_Risk_Level();
+    
+   
     
     
 }

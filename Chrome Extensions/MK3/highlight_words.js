@@ -419,7 +419,7 @@ const MAIN = async () => {
     const response = await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
     console.log("Alive_Hussar_API_Status:", response);
     
-    if (response==true) {
+    if (response === true) {
         console.log("Server is alive 1st point of contact");
         Alive_Hussar_API_Status = true;
     }

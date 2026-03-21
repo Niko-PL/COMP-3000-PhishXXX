@@ -4,19 +4,17 @@
   "description": "Version MK3 1.0 ",
   "version": "1.4",
   "icons": {
-    "16": "images/Guard_MK1.png",
-    "32": "images/Guard_MK1.png",
-    "48": "images/Guard_MK1.png",
-    "64": "images/Guard_MK1.png",
-    "128": "images/Guard_MK1.png",
-    "256": "images/Guard_MK1.png"
+    "16": "images/Hussar_Mk2.png",
+    "32": "images/Hussar_Mk2.png",
+    "48": "images/Hussar_Mk2.png",
+    "64": "images/Hussar_Mk2.png",
+    "128": "images/Hussar_Mk2.png",
+    "256": "images/Hussar_Mk2.png"
   },
   "permissions": ["tabs", "storage", "scripting", "activeTab"],
   "host_permissions": [
     "https://mail.google.com/*",
     "https://www.virustotal.com/*",
-    "http://localhost:5443/*",
-    "http://192.168.204.1:5443/*",
     "https://localhost:5443/*",
     "https://192.168.204.1:5443/*"
   ],
@@ -33,7 +31,7 @@
   "action": 
   {
     "default_popup": "Extention.html",
-    "default_title": "Phish-Hussar Mk2",
+    "default_title": "Phish-Hussar Mk3",
     "default_icon": {
       "16": "images/Guard_MK1.png",
       "32": "images/Guard_MK1.png",

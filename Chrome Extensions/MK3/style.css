@@ -5,6 +5,7 @@ body {
   padding: 15px;
   text-align: center;
   margin: 0;
+  background-color: #3962e9;
 }
 
 /* Inputs */
@@ -184,4 +185,62 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+.status {
+  color: rgb(255, 255, 255);
+  padding: 3px 7.5px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  margin: 0;
+  background-color: #6b7280;
+}
+
+.status.status-online {
+  background-color: #22c55e;
+}
+
+
+
+.status.status-offline {
+  background-color: #ef4444;
+}
+
+.status-container {
+  display: flex;
+  flex-direction: row;
+  background-color: #537bcc38;
+  border: 1.5px solid #01143b;
+  border-radius: 3px;
+  padding: 3px 7.5px;
+  gap: 9px; /* Reduced space between status items */
+}
+
+.status-container-item {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 0.75px solid #c4d4f5;
+  padding: 7.5px 7.5px;
+  border-radius: 3px;
+  font-size: 11.5px;
+  margin: 0;
+  width: 100%;
+}
+
+.settings-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: rgb(189, 20, 20);
+  border: 0.75px solid #1f4ba5;
+  padding: 7.5px 7.5px;
+  border-radius: 3px;
+  font-size: 11.5px;
+  margin: 0 auto;
+  width: 1%;
+  min-width: 220px;
+  max-width: 320px;
+  box-sizing: border-box;
 }

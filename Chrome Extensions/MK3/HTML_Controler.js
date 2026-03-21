@@ -2,10 +2,16 @@
 //it also controlls html on the gmail page
 //changed to version 2.0
 
-document.addEventListener('DOMContentLoaded', () => { // Ensure the external extension DOM is fully loaded
+document.addEventListener('DOMContentLoaded', async () => { // Ensure the external extension DOM is fully loaded
     console.log("DOM Content Loaded");
     console.log("Content script loaded on:", window.location.href);
 
+
+
+    const Hussar_API_Status = document.getElementById("Hussar_API_Status");
+    const WHOIS_API_Status = document.getElementById("WHOIS_API_Status");
+    const Virus_Total_API_Status = document.getElementById("Virus_Total_API_Status");
+    
 
 
         //load all the buttones for main ui
@@ -23,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
         const WHOISJSON_API_KEY_Looker = document.getElementById("WHOISJSON_API_KEY_Looker");
         const Virus_Total_API_KEY_Looker = document.getElementById("Virus_Total_API_KEY_Looker");
+        const WHOIS_USER_Looker = document.getElementById("WHOIS_USER_Looker");
+
 
 
         //inside settings section data laoded
@@ -34,8 +42,12 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         //const Time_Range = document.getElementById("time_range");
 
         const Highlight_On_Open = document.getElementById("highlight_on_open");
-        const Improve_Firebase = document.getElementById("improve_firebase");
+        
         const Use_AI = document.getElementById("use_ai");
+        const Use_Hussar_API = document.getElementById("use_hussar_api");
+        const Use_WHOIS_API = document.getElementById("use_whois_api");
+        const Use_Virus_Total_API = document.getElementById("use_virustotal_api");
+        const Use_Language_Processing = document.getElementById("use_language_processing");
 
 
         // test section data loaded
@@ -48,6 +60,55 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         const Virus_Total_API_KEY = document.getElementById("Virus_Total_API_KEY");
         const Virus_Total_API_KEY_Button = document.getElementById("Virus_Total_API_KEY_button");
 
+        const WHOIS_User = document.getElementById("WHOIS_USER");
+        const WHOIS_USER_Button = document.getElementById("WHOIS_USER_button");
+
+
+
+
+    // change status color function
+    //------------------------------------------------------------------
+    //this function will change the color of the status element based on the text content
+    //------------------------------------------------------------------
+
+
+    const Change_Status_Text = (Element_ID,state) => {
+        if (!Element_ID || !state) {
+            return;
+        }
+
+        const Element = document.getElementById(Element_ID);
+        if (!Element) {
+            return;
+        }
+        Element.textContent = state;
+        Change_Status_Color(Element,state);
+    }
+
+    const Change_Status_Color = (Element) => {
+        if (!Element) {
+            return;
+        }
+
+        const state = Element.textContent.trim().toLowerCase();
+        Element.classList.remove("status-online", "status-offline");
+
+
+        if (state == "online") {
+            Element.classList.add("status-online");
+            return;
+        }
+
+        if (state == "offline") {
+            Element.classList.add("status-offline");
+            return;
+        }
+
+    };
+
+
+    
+
 
     //settings cookies  contorleer
     //------------------------------------------------------------------
@@ -55,68 +116,45 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     //------------------------------------------------------------------
 
     const Save_Settings = () => {
-        const temp =  'API Key Loaded Successfully';
-        let WHOISJSON_API_KEY_value = '';
-        let Virus_Total_API_KEY_value = '';
-        let Who = false;
-        let Virus_Total = false;
-        if (!temp.includes(WHOISJSON_API_KEY.value )) {
-            WHOISJSON_API_KEY_value = WHOISJSON_API_KEY.value;
-            Who = true;
+
+
+        let Settings_Cookie = {};
+        Settings_Cookie = {
+            Highlight_On_Open: Highlight_On_Open.checked,
+            Use_AI: Use_AI.checked,
+            Use_Hussar_API: Use_Hussar_API.checked,
+            Use_WHOIS_API: Use_WHOIS_API.checked,
+            Use_Virus_Total_API: Use_Virus_Total_API.checked,
+        }
+
+
+        if (!'No whois api key please enter a valid value'.includes(WHOISJSON_API_KEY.value) || !'API Key failed to load'.includes(WHOISJSON_API_KEY.value)) {
+            Settings_Cookie.WHOISJSON_API_KEY = WHOISJSON_API_KEY.value;
+
         }
         else {
             console.log("Who is key is not new input");
         }
 
-        if (!temp.includes(Virus_Total_API_KEY.value )) {
-            Virus_Total_API_KEY_value = Virus_Total_API_KEY.value;
-            Virus_Total = true;
+        if (!'No virus total api key please enter a valid value'.includes(Virus_Total_API_KEY.value) || !'API Key failed to load'.includes(Virus_Total_API_KEY.value)) {
+            Settings_Cookie.Virus_Total_API_KEY = Virus_Total_API_KEY.value;
+    
         }
         else {
             console.log("Virus total key is not new input");
         }
-
-        let Settings_Cookie = {};
-
-        if (Who && Virus_Total) { //if both keys are new inputs, save both
-            console.log("Both keys are new inputs");
-             Settings_Cookie = {
-                
+        if (!'No user please enter a valid value'.includes(WHOIS_USER.value) || !'API Key failed to load'.includes(WHOIS_USER.value)) {
+            Settings_Cookie.WHOIS_USER = WHOIS_USER.value;
             
 
-                Highlight_On_Open: Highlight_On_Open.checked,
-                Improve_Firebase: Improve_Firebase.checked,
-                Use_AI: Use_AI.checked,
-                WHOISJSON_API_KEY: WHOISJSON_API_KEY_value,
-                Virus_Total_API_KEY: Virus_Total_API_KEY_value,
-            };
-        }
-        else if (Who && !Virus_Total) { //if one of the keys is new input, save the new input
-            console.log("Who is key is new input");
-            Settings_Cookie = {
-                Highlight_On_Open: Highlight_On_Open.checked,
-                Improve_Firebase: Improve_Firebase.checked,
-                Use_AI: Use_AI.checked,
-                HOISJSON_API_KEY: WHOISJSON_API_KEY_value,
-            };
-        }
-        else if (!Who && Virus_Total) { //if one of the keys is new input, save the new input
-            console.log("Virus total key is new input");
-            Settings_Cookie = {
-                Highlight_On_Open: Highlight_On_Open.checked,
-                Improve_Firebase: Improve_Firebase.checked,
-                Use_AI: Use_AI.checked,
-                Virus_Total_API_KEY: Virus_Total_API_KEY_value,
-            };
         }
         else {
-            console.log("No keys are new inputs");
-            Settings_Cookie = {
-                Highlight_On_Open: Highlight_On_Open.checked,
-                Improve_Firebase: Improve_Firebase.checked,
-                Use_AI: Use_AI.checked,
-            };
+            console.log("WHOIS user is not new input");
         }
+
+        
+
+        
         
         try {
             chrome.storage.sync.set(Settings_Cookie);
@@ -138,15 +176,79 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
             //Time_Range.value = Cookie_Data.Time_Range || "7";
 
             Highlight_On_Open.checked = Cookie_Data.Highlight_On_Open || false;
-            Improve_Firebase.checked = Cookie_Data.Improve_Firebase || false;
             Use_AI.checked = Cookie_Data.Use_AI || false;
+            Use_Hussar_API.checked = Cookie_Data.Use_Hussar_API || false;
+            Use_WHOIS_API.checked = Cookie_Data.Use_WHOIS_API || false;
+            Use_Virus_Total_API.checked = Cookie_Data.Use_Virus_Total_API || false;
+            Use_Language_Processing.checked = Cookie_Data.Use_Language_Processing || false;
             
-
-            WHOISJSON_API_KEY.value = 'API Key Loaded Successfully';
-            Virus_Total_API_KEY.value = 'API Key Loaded Successfully';
-            //console.log("WHOISJSON_API_KEY Loaded fro mcookies:", WHOISJSON_API_KEY.value);
+            if (Cookie_Data.WHOIS_USER != null && Cookie_Data.WHOIS_USER != '') {
+                WHOIS_USER.value = 'API User Loaded Successfully';
+            }
+            else {
+                WHOIS_USER.value = 'No user please enter a valid value';
+            }
+            
+            if (Cookie_Data.WHOISJSON_API_KEY != null && Cookie_Data.WHOISJSON_API_KEY != '') {
+                WHOISJSON_API_KEY.value = 'API Key Loaded Successfully';
+            }
+            else {
+                WHOISJSON_API_KEY.value = 'No whois api key please enter a valid value';
+            }
+            
+            if (Cookie_Data.Virus_Total_API_KEY != null && Cookie_Data.Virus_Total_API_KEY != '') {
+                Virus_Total_API_KEY.value = 'API Key Loaded Successfully';
+            }
+            else {
+                Virus_Total_API_KEY.value = 'No virus total api key please enter a valid value';
+            }
         });
     }
+
+    
+    const API_Controller = (Choice) => {
+        const Selection = [
+            { key: "WHOISJSON_API_KEY", element: WHOISJSON_API_KEY },
+            { key: "Virus_Total_API_KEY", element: Virus_Total_API_KEY },
+            { key: "WHOIS_USER", element: WHOIS_USER }
+        ];
+
+        chrome.storage.sync.get((Cookie_Data) => {
+            const item = Selection[Choice];
+            const cookieValue = Cookie_Data[item.key];
+            const currentVal = item.element.value;
+
+            // If a value is saved in storage, display it, otherwise set status messages
+            if (cookieValue != null && cookieValue !== "") {
+                if (
+                    currentVal === 'API Key Loaded Successfully' ||
+                    currentVal === 'API Key failed to load' ||
+                    currentVal === 'Please enter a valid Value'
+                ) {
+                    // Show the real key ONLY if not already shown
+                    if (currentVal !== cookieValue) {
+                        item.element.value = cookieValue;
+                    }
+                } else if (currentVal === cookieValue) {
+                    item.element.value = 'API Key Loaded Successfully';
+                } else {
+                    // Some other value (user input, etc.), set to status
+                    item.element.value = 'API Key Loaded Successfully';
+                }
+            } else {
+                // Key not found: show tailored message per type
+                if (item.key === "WHOIS_USER") {
+                    item.element.value = 'No user please enter a valid value';
+                } else if (item.key === "WHOISJSON_API_KEY") {
+                    item.element.value = 'No whois api key please enter a valid value';
+                } else if (item.key === "Virus_Total_API_KEY") {
+                    item.element.value = 'No virus total api key please enter a valid value';
+                } else {
+                    item.element.value = 'API Key failed to load';
+                }
+            }
+        });
+    };
 
     const Who_is_API_Controller = () => {
         chrome.storage.sync.get((Cookie_Data) => {
@@ -427,7 +529,96 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         }
     }
 
+    const API_Status_Updater = async () => {
+        let WHOISJSON_API_KEY = '';
+        let Virus_Total_API_KEY = '';
+        let WHOIS_USER = '';
+        chrome.storage.sync.get((Cookie_Data) => {
+            console.log("Cookie data:", Cookie_Data);
+            WHOISJSON_API_KEY = Cookie_Data.WHOISJSON_API_KEY;
+            Virus_Total_API_KEY = Cookie_Data.Virus_Total_API_KEY;
+            WHOIS_USER = Cookie_Data.WHOIS_USER;
+
+        });
+        console.log("API status updater started");
+        const Hussar_Status= await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
+        console.log("Hussar status:", Hussar_Status);
+        if (Hussar_Status === true) {
+            Update_Status("Hussar API is Online", true, true);
+            Change_Status_Text("Hussar_API_Status", "Online");
+
+        }
+        else {
+            Update_Status("Hussar API is Offline", true, true);
+            Change_Status_Text("Hussar_API_Status", "Offline");
+        }
+
+        const Virus_Total_Status= await chrome.runtime.sendMessage({action: "Alive_VirusTotal_API", API_Key: Virus_Total_API_KEY});
+        console.log("Virus Total status:", Virus_Total_Status);
+        if (Virus_Total_Status === true) {
+            Update_Status("Virus Total API is Online", true, true);
+            Change_Status_Text("Virus_Total_API_Status", "Online");
+        }
+        else {
+            Update_Status("Virus Total API is Offline", true, true);
+            Change_Status_Text("Virus_Total_API_Status", "Offline");
+        }
+
+
+
+        const endpoint = `https://jsonwhoisapi.com/api/v1/whois?identifier=google.com`;
+        const new_key = `${WHOIS_USER}:${WHOISJSON_API_KEY}`;
+        const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+            "Authorization": `Basic ${btoa(new_key)}`,
+            "Accept": "application/json"
+        }
+        });
+        if (!response.ok) {
+            throw new Error(`jsonwhoisapi.com request failed (${response.status} ${response.statusText})`);
+        }
+        else{
+            Update_Status("WHOIS JSON API is Online", true, true);
+            Change_Status_Text("WHOIS_API_Status", "Online");
+        }
+
+        Update_Status("All API's checked Ready for Action", true, true);
+
+        
+
+        
+
+
+        /*
+        const endpoint = 'https://whoisjson.com/api/v1/domain-availability?domain=google.com';
+        console.log("WHOIS JSON API key in API status updater:", WHOISJSON_API_KEY);
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'accept': 'application/json',
+                'Authorization': `TOKEN=${WHOISJSON_API_KEY}`
+            }
+        });
+        console.log("WHOIS JSON API response:", response);
+
+        if (!response.ok) {
+            Update_Status("WHOIS JSON API is Offline", true, true);
+            Change_Status_Text("WHOIS_API_Status", "Offline");
+            throw new Error(`WhoisJSON request failed (${response.status} ${response.statusText})`);
+        }
+        else {
+            Update_Status("WHOIS JSON API is Online", true, true);
+            Change_Status_Text("WHOIS_API_Status", "Online");
+        }
+            */
+    };
+
     const MAIN = async () => {
+        console.log("API status updated");
+        await API_Status_Updater();
+        
+
         tabID = await Get_Tab_ID();
         if (tabID == null){
             Update_Status("No tab found navigate to gmail and try again", true,true);
@@ -448,6 +639,7 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
 
             if (injected) {
                 Update_Status("Tab injected successfully", true, true);
+                
                 return tabID;
             }
 
@@ -459,7 +651,6 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
             Update_Status("Error injecting scripts", true, true);
             return null;
         }
-
 
     }
 
@@ -478,11 +669,14 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
         await MAIN(); //inject the scripts into the tab
         console.log("Tab ID: ", tabID);
         if(tabID != null){
-            Send_Message("highlight");
+            Update_Status("Begining Highlighting Process", true, true);
+            await Send_Message("highlight");
+            Update_Status("Highlighting Process Completed", true, true);
         } else {
             Update_Status("Unable to send highlight command", true, true);
         }
-        
+        Update_Status("Process Completed \n Ready for Action", true, true);
+        return;
     });
     /*
     Button_Scraper.addEventListener("click", () => {
@@ -502,17 +696,41 @@ document.addEventListener('DOMContentLoaded', () => { // Ensure the external ext
     //Clear_Sheet.addEventListener("change", Save_Settings);
     //Time_Range.addEventListener("change", Save_Settings);
     Highlight_On_Open.addEventListener("change", Save_Settings);
-    Improve_Firebase.addEventListener("change", Save_Settings);
     Use_AI.addEventListener("change", Save_Settings);
+    Use_Hussar_API.addEventListener("change", Save_Settings);
+    Use_WHOIS_API.addEventListener("change", Save_Settings);
+    Use_Virus_Total_API.addEventListener("change", Save_Settings);
+    
+    
+    
     WHOISJSON_API_KEY_Button.addEventListener("click", Save_Settings);
     Virus_Total_API_KEY_Button.addEventListener("click", Save_Settings);
+    WHOIS_USER_Button.addEventListener("click", Save_Settings);
 
-    Virus_Total_API_KEY_Looker.addEventListener("click", Virus_Total_API_Controller);
-    WHOISJSON_API_KEY_Looker.addEventListener("click", Who_is_API_Controller);
+    
+
+    Virus_Total_API_KEY_Looker.addEventListener("click", () => API_Controller(1));
+    WHOISJSON_API_KEY_Looker.addEventListener("click", () => API_Controller(0));
+    WHOIS_USER_Looker.addEventListener("click", () => API_Controller(2));
     
     console.log("Buttons and status loaded and event listeners added");
+    Update_Status("--READY FOR ACTION--", true, true);
+
     Load_Settings();
-    Update_Status("--READY FOR ACTION--");
+    console.log("Settings loaded");
+    console.log("WHOIS JSON API key after loading settings:", WHOISJSON_API_KEY.value);
+    
+    try {
+        console.log("Updating API status");
+        await API_Status_Updater();
+    }
+    catch (error) {
+        console.error("Error updating API status:", error);
+        Update_Status("Error updating API status", true, true);
+    }
+    //setInterval(API_Status_Updater, 60000); //update the API status every 60 seconds
+
+    
 });
 
 
