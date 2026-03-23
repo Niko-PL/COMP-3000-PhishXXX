@@ -403,41 +403,28 @@ Scan_Email = async () => {
         console.log("Email Body found ");
 
 
-        const emailBodyString_Text = Array.from(Email_Body).map(email => Clean_Email_Body(email)).join("\n");
+        const Email_Body_Cleaned = Array.from(Email_Body).map(email => Clean_Email_Body(email)).join("\n");
     
-        console.log("Cleaned Email Body String Text:", emailBodyString_Text);
-        const Email_Body_Text = emailBodyString_Text.toLowerCase();
+        console.log("Cleaned Email Body String Text:", Email_Body_Cleaned);
+        const Email_Body_Text = Email_Body_Cleaned.toLowerCase();
         
-       
-
-        chrome.storage.sync.get((data) => async () => {
-            const Use_Hussar_API = data.Use_Hussar_API;
-            const Use_WHOIS_API = data.Use_WHOIS_API;
-            const Use_Virus_Total_API = data.Use_Virus_Total_API;
-
-            try 
-            {
-                if (Alive_Hussar_API_Status && Use_Hussar_API) {
-                    Highlight_Words(Email_Body, await Word_Regex(Email_Body_Text));
-                }
-                else {
-                    console.error("Server is not alive");
-                }
-            }
-            catch (error) {
-                console.error("Error highlighting words:", error);
-                return "Error highlighting words";
-            }
-
-
-
-            if (Use_Hussar_API || Use_WHOIS_API || Use_Virus_Total_API) {
-                Highlight_Url_HREF(Email_Body, Use_Hussar_API, Use_WHOIS_API, Use_Virus_Total_API);
-            }
-            else {
-                console.error("No API selected");
-            }
+        
+        const data = await new Promise((resolve) => {chrome.storage.sync.get(resolve);
         });
+
+        
+        const Use_Hussar_API = data.Use_Hussar_API;
+        const Use_WHOIS_API = data.Use_WHOIS_API;
+        const Use_Virus_Total_API = data.Use_Virus_Total_API;
+        const Use_AI = data.Use_AI;
+
+        if (Alive_Hussar_API_Status && Use_AI) {
+            const regex = await Word_Regex(Email_Body_Text);
+            Highlight_Words(Email_Body, regex);
+        }
+        if (Use_Hussar_API || Use_WHOIS_API || Use_Virus_Total_API) {
+        await Highlight_Url_HREF(Email_Body, Use_Hussar_API, Use_WHOIS_API, Use_Virus_Total_API);
+        }
     }
     else {
         console.log("Email Body not found");
