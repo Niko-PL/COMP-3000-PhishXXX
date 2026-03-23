@@ -1,5 +1,4 @@
 from calendar import c
-import json
 from math import e
 from textwrap import shorten
 from flask import Flask, request, jsonify
@@ -145,6 +144,8 @@ def extend_url():
 @app.route('/test', methods=['GET'])
 @limiter.limit("5 per minute")
 def test():
+    cient_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    print(f"/test ping from IP: {cient_ip}")
     result = jsonify({'message': 'Hello, World!'})
     print("HERE")
     print(result)

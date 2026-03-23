@@ -133,36 +133,50 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             Word_Highlight_Colour: Word_Highlight_Colour.value,
             URL_Highlight_Colour: URL_Highlight_Colour.value,
         }
-
-
-        if (!'No whois api key please enter a valid value'.includes(WHOISJSON_API_KEY.value) || !'API Key failed to load'.includes(WHOISJSON_API_KEY.value)) {
-            Settings_Cookie.WHOISJSON_API_KEY = WHOISJSON_API_KEY.value;
-
-        }
-        else {
-            console.log("Who is key is not new input");
-        }
-
-        if (!'No virus total api key please enter a valid value'.includes(Virus_Total_API_KEY.value) || !'API Key failed to load'.includes(Virus_Total_API_KEY.value)) {
-            Settings_Cookie.Virus_Total_API_KEY = Virus_Total_API_KEY.value;
-    
-        }
-        else {
-            console.log("Virus total key is not new input");
-        }
-        if (!'No user please enter a valid value'.includes(WHOIS_USER.value) || !'API Key failed to load'.includes(WHOIS_USER.value)) {
-            Settings_Cookie.WHOIS_USER = WHOIS_USER.value;
-            
-
-        }
-        else {
-            console.log("WHOIS user is not new input");
-        }
-
         
+        try {
+            chrome.storage.sync.set(Settings_Cookie);
+            console.log("Settings saved");
+        }
+        catch (error) {
+            console.error("Error saving settings:", error);
+            return;
+        }
+    }
 
-        
-        
+    const Save_API_Settings = () => { //only save when buttons press ( fixes some issue)
+        let Settings_Cookie = {};
+        const BAD_STRINGS = new Set([
+            "",
+            "API Key failed to load",
+            "API Key Loaded Successfully",
+            "No whois api key please enter a valid value",
+            "No virus total api key please enter a valid value",
+            "No user please enter a valid value",
+            "Please enter a valid Value"
+        ]);
+
+        const WHOIS_API_Value = (WHOISJSON_API_KEY.value || "").trim();
+        const Virus_Total_API_Value = (Virus_Total_API_KEY.value || "").trim();
+        const WHOIS_USER_Value = (WHOIS_USER.value || "").trim();
+
+        if (!BAD_STRINGS.has(WHOIS_API_Value)) {
+            Settings_Cookie.WHOISJSON_API_KEY = WHOIS_API_Value;
+        } else {
+            console.log("Whois key not updated");
+        }
+
+        if (!BAD_STRINGS.has(Virus_Total_API_Value)) {
+            Settings_Cookie.Virus_Total_API_KEY = Virus_Total_API_Value;
+        } else {
+            console.log("Virus total key not updated");
+        }
+
+        if (!BAD_STRINGS.has(WHOIS_USER_Value)) {
+            Settings_Cookie.WHOIS_USER = WHOIS_USER_Value;
+        } else {
+            console.log("WHOIS user not updated");
+        }
         try {
             chrome.storage.sync.set(Settings_Cookie);
             console.log("Settings saved");
@@ -200,25 +214,30 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             console.log("AFTER " + URL_Highlight_Colour.value);
             document.getElementById("warning_size_label").textContent = Warning_Message_Size.value;
 
-            if (Cookie_Data.WHOIS_USER != null && Cookie_Data.WHOIS_USER != '') {
-                WHOIS_USER.value = 'API User Loaded Successfully';
+            // Keep real API values in storage only; use placeholder for load status.
+            WHOIS_USER.value = "";
+            WHOISJSON_API_KEY.value = "";
+            Virus_Total_API_KEY.value = "";
+
+            if (Cookie_Data.WHOIS_USER != null && Cookie_Data.WHOIS_USER !== '') {
+                WHOIS_USER.placeholder = 'API User Loaded Successfully';
             }
             else {
-                WHOIS_USER.value = 'No user please enter a valid value';
+                WHOIS_USER.placeholder = 'No user please enter a valid value';
             }
             
-            if (Cookie_Data.WHOISJSON_API_KEY != null && Cookie_Data.WHOISJSON_API_KEY != '') {
-                WHOISJSON_API_KEY.value = 'API Key Loaded Successfully';
+            if (Cookie_Data.WHOISJSON_API_KEY != null && Cookie_Data.WHOISJSON_API_KEY !== '') {
+                WHOISJSON_API_KEY.placeholder = 'API Key Loaded Successfully';
             }
             else {
-                WHOISJSON_API_KEY.value = 'No whois api key please enter a valid value';
+                WHOISJSON_API_KEY.placeholder = 'No whois api key please enter a valid value';
             }
             
-            if (Cookie_Data.Virus_Total_API_KEY != null && Cookie_Data.Virus_Total_API_KEY != '') {
-                Virus_Total_API_KEY.value = 'API Key Loaded Successfully';
+            if (Cookie_Data.Virus_Total_API_KEY != null && Cookie_Data.Virus_Total_API_KEY !== '') {
+                Virus_Total_API_KEY.placeholder = 'API Key Loaded Successfully';
             }
             else {
-                Virus_Total_API_KEY.value = 'No virus total api key please enter a valid value';
+                Virus_Total_API_KEY.placeholder = 'No virus total api key please enter a valid value';
             }
 
         });
@@ -233,99 +252,48 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
         ];
 
         chrome.storage.sync.get((Cookie_Data) => {
-            const item = Selection[Choice];
-            const cookieValue = Cookie_Data[item.key];
-            const currentVal = item.element.value;
-
-            // If a value is saved in storage, display it, otherwise set status messages
-            if (cookieValue != null && cookieValue !== "") {
-                if (
-                    currentVal === 'API Key Loaded Successfully' ||
-                    currentVal === 'API Key failed to load' ||
-                    currentVal === 'Please enter a valid Value'
-                ) {
-                    
-                    if (currentVal !== cookieValue) {
-                        item.element.value = cookieValue;
-                    }
-                } else if (currentVal === cookieValue) {
-                    item.element.value = 'API Key Loaded Successfully';
-                } else {
-                    // Some other value (user input, etc.), set to status
-                    item.element.value = 'API Key Loaded Successfully';
-                }
-            } else {
-                // Key not found: show tailored message per type
-                if (item.key === "WHOIS_USER") {
-                    item.element.value = 'No user please enter a valid value';
-                } else if (item.key === "WHOISJSON_API_KEY") {
-                    item.element.value = 'No whois api key please enter a valid value';
-                } else if (item.key === "Virus_Total_API_KEY") {
-                    item.element.value = 'No virus total api key please enter a valid value';
-                } else {
-                    item.element.value = 'API Key failed to load';
-                }
+            const Selection_Choiced = Selection[Choice];
+            if (!Selection_Choiced || !Selection_Choiced.element) {
+                console.warn("API_Controller: invalid selection", Choice);
+                return;
             }
+
+            const selection_data = Cookie_Data[Selection_Choiced.key];
+            
+            const Loaded_Messages = {
+                WHOIS_USER: "API User Loaded Successfully",
+                WHOISJSON_API_KEY: "API Key Loaded Successfully",
+                Virus_Total_API_KEY: "API Key Loaded Successfully"
+            };
+
+            const Null_Messages = {
+                WHOIS_USER: "No user please enter a valid value",
+                WHOISJSON_API_KEY: "No whois api key please enter a valid value",
+                Virus_Total_API_KEY: "No virus total api key please enter a valid value"
+            };
+
+            const load_message = Loaded_Messages[Selection_Choiced.key] || "API value loaded";
+            const null_message = Null_Messages[Selection_Choiced.key] || "API value missing";
+
+            if (selection_data == null || selection_data == undefined || selection_data == "") {
+                Selection_Choiced.element.value = "";
+                Selection_Choiced.element.placeholder = null_message;
+                return;
+            }
+
+          
+            const valueIsVisible = Selection_Choiced.element.value === selection_data;
+            if (valueIsVisible) {
+                Selection_Choiced.element.value = "";
+                Selection_Choiced.element.placeholder = load_message;
+                return;
+            }
+
+            Selection_Choiced.element.value = selection_data;
         });
     };
 
-    const Who_is_API_Controller = () => {
-        chrome.storage.sync.get((Cookie_Data) => {
-            if ((WHOISJSON_API_KEY.value == 'API Key Loaded Successfully' || WHOISJSON_API_KEY.value == 'API Key failed to load') && WHOISJSON_API_KEY.value != Cookie_Data.WHOISJSON_API_KEY) {
-                if (Cookie_Data.WHOISJSON_API_KEY != null && Cookie_Data.WHOISJSON_API_KEY != '') {
-                    console.log("WHOISJSON_API_KEY is loaded from cookies:", Cookie_Data.WHOISJSON_API_KEY);
-                    WHOISJSON_API_KEY.value = Cookie_Data.WHOISJSON_API_KEY; //show the key
-                }
-                else {
-                    console.log("WHOISJSON_API_KEY is not loaded from cookies:");
-                    WHOISJSON_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
-                }
-                
-            }
-            else if ((WHOISJSON_API_KEY.value != 'API Key Loaded Successfully' || WHOISJSON_API_KEY.value !== 'API Key failed to load') && WHOISJSON_API_KEY.value == Cookie_Data.WHOISJSON_API_KEY) {
-                if (Cookie_Data.WHOISJSON_API_KEY != null && Cookie_Data.WHOISJSON_API_KEY != '') {
-                    WHOISJSON_API_KEY.value = 'API Key Loaded Successfully'; //show the key
-                }
-                else {
-                    WHOISJSON_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
-                }
-            }
-            else {
-
-                WHOISJSON_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
-            }
-
-        });
-    }
-
-    const Virus_Total_API_Controller = () => {
-        chrome.storage.sync.get((Cookie_Data) => {
-            if ((Virus_Total_API_KEY.value == 'API Key Loaded Successfully' || Virus_Total_API_KEY.value == 'API Key failed to load') && Virus_Total_API_KEY.value != Cookie_Data.Virus_Total_API_KEY) {
-                if (Cookie_Data.Virus_Total_API_KEY != null && Cookie_Data.Virus_Total_API_KEY != '') {
-                    console.log("Virus_Total_API_KEY is loaded from cookies:", Cookie_Data.Virus_Total_API_KEY);
-                    Virus_Total_API_KEY.value = Cookie_Data.Virus_Total_API_KEY; //show the key
-                }
-                else {
-                    console.log("Virus_Total_API_KEY is not loaded from cookies:");
-                    Virus_Total_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
-                }
-                
-            }
-            else if ((Virus_Total_API_KEY.value != 'API Key Loaded Successfully' || Virus_Total_API_KEY.value !== 'API Key failed to load') && Virus_Total_API_KEY.value == Cookie_Data.Virus_Total_API_KEY) {
-                if (Cookie_Data.Virus_Total_API_KEY != null && Cookie_Data.Virus_Total_API_KEY != '') {
-                    Virus_Total_API_KEY.value = 'API Key Loaded Successfully'; //show the key
-                }
-                else {
-                    Virus_Total_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
-                }
-            }
-            else {
-
-                Virus_Total_API_KEY.value = 'API Key failed to load'; //something gone badly wrong
-            }
-
-        });
-    }
+   
 
 
     //run on start checkbox contorleer
@@ -728,9 +696,9 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
     
     
     
-    WHOISJSON_API_KEY_Button.addEventListener("click", Save_Settings);
-    Virus_Total_API_KEY_Button.addEventListener("click", Save_Settings);
-    WHOIS_USER_Button.addEventListener("click", Save_Settings);
+    WHOISJSON_API_KEY_Button.addEventListener("click", Save_API_Settings);
+    Virus_Total_API_KEY_Button.addEventListener("click", Save_API_Settings);
+    WHOIS_USER_Button.addEventListener("click", Save_API_Settings);
 
     
 
