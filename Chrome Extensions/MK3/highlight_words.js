@@ -406,26 +406,28 @@ Scan_Email = async () => {
         const emailBodyString_Text = Array.from(Email_Body).map(email => Clean_Email_Body(email)).join("\n");
     
         console.log("Cleaned Email Body String Text:", emailBodyString_Text);
-        const low_cleanedEmailBodyString_Text = emailBodyString_Text.toLowerCase();
+        const Email_Body_Text = emailBodyString_Text.toLowerCase();
         
-        try 
-        {
-            if (Alive_Hussar_API_Status) {
-                Highlight_Words(Email_Body, await Word_Regex(low_cleanedEmailBodyString_Text));
-            }
-            else {
-                console.error("Server is not alive");
-            }
-        }
-        catch (error) {
-            console.error("Error highlighting words:", error);
-            return "Error highlighting words";
-        }
+       
 
-        chrome.storage.sync.get((data) => {
+        chrome.storage.sync.get((data) => async () => {
             const Use_Hussar_API = data.Use_Hussar_API;
             const Use_WHOIS_API = data.Use_WHOIS_API;
             const Use_Virus_Total_API = data.Use_Virus_Total_API;
+
+            try 
+            {
+                if (Alive_Hussar_API_Status && Use_Hussar_API) {
+                    Highlight_Words(Email_Body, await Word_Regex(Email_Body_Text));
+                }
+                else {
+                    console.error("Server is not alive");
+                }
+            }
+            catch (error) {
+                console.error("Error highlighting words:", error);
+                return "Error highlighting words";
+            }
 
 
 
