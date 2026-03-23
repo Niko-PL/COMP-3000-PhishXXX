@@ -70,10 +70,18 @@ button:hover {
   display: block;
 }
 
+
 h3 {
   margin: 0;
   flex: 1;
-  text-align: left;
+  text-align: center;
+  color: #f3f3f3;
+  background-color: #053aad;
+  margin: 0;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .settings-button {
@@ -82,12 +90,13 @@ h3 {
   align-items: center;
   justify-content: center;
   display: flex;
-  background-color: #4b5e85;
+  background-color: #172d4e;
   margin-top: 0;
 }
 
+/* settings nad buttons*/
 .settings-button:hover {
-  background-color: #161e2e;
+  background-color: #040d1f;
 }
 
 .settings-section-hidden {
@@ -96,6 +105,14 @@ h3 {
 
 .security-section-hidden {
   display: none;
+}
+
+#settings_section,
+#security_section {
+  padding-bottom: 5px;
+  background-color: #024de4a9;
+  padding: 10px;
+
 }
 
 .in-line {
@@ -213,7 +230,7 @@ input:checked + .slider:before {
   border: 1.5px solid #01143b;
   border-radius: 3px;
   padding: 3px 7.5px;
-  gap: 9px; /* Reduced space between status items */
+  gap: 9px; 
 }
 
 .status-container-item {

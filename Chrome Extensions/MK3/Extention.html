@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Gmail Logger Mk3</title>
+    <title>Phish-Hussar Mk3</title>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <div class="in-line">
       <img id="logo" src="images/Hussar_Mk2.png" alt="Hussar MK2 Logo">
-      <h3>Gmail Logger Mk3</h3>
+      <h3>Phish-Hussar Mk3</h3>
       <button type="button" class="settings-button" id="settings_button" aria-expanded="false">&#9881;</button>
       <button type="button" class="settings-button" id="security_button" aria-expanded="false">&#128737;</button>
     </div>
@@ -78,6 +78,22 @@
             </label>
             <h4 class="switch_text_right">YES</h4>
         </div>
+      </div>
+
+
+      <div class="settings-container">
+        <label>Warning Message Size (<span id="warning_size_label">15</span>px)</label>
+        <input type="range" id="warning_message_size" min="8" max="28" value="15">
+      </div>
+
+      <div class="settings-container">
+        <label>Highlighted Word Colour</label>
+        <input type="color" id="word_highlight_colour" value="#8b0000">
+      </div>
+
+      <div class="settings-container">
+        <label>URL Highlight Colour</label>
+        <input type="color" id="url_highlight_colour" value="#ff00ea">
       </div>
       
     </div>

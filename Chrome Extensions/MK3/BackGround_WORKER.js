@@ -80,22 +80,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { //run 
                     accept: 'application/json'
                 }
                 };
-                  
 
+            if (!API_Key|| !url || API_Key.length === 0 || url.length === 0) {
+              sendResponse(false);
+              return;
+            }
+                  
+              try{
               fetch('https://www.virustotal.com/api/v3/urls', options)
               .then(response => response.json())
               .then(response => {
                 console.log("Virus Total response:", response);
+
+                if (!response || !response.data || !response.data.id) {
+                  console.error("Virus Total response missing data.id or response is null", response);
+                  sendResponse({ error: "Virus Total did not return an analysis id", data: response });
+                  return;
+                }
+
                 const response_id = response.data.id;
                 console.log("Virus Total response ID:", response_id);
                 fetch(`https://www.virustotal.com/api/v3/analyses/${response_id}`, options_2)
                 .then(res => res.json())
                 .then(res => sendResponse(res))
-                .catch(err => console.error(err));
-
-
+                .catch(err => {
+                  console.error(err);
+                  sendResponse({ error: err?.message || "Virus Total analysis request failed" });
+                });
               })
-              .catch(err => console.error(err));
+
+              }
+              catch (error) {
+                console.error("Error during fetch operation:", error);
+                sendResponse(false);
+              }
+              
+
+
+            
 
 
 

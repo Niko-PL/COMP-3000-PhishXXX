@@ -205,6 +205,11 @@ const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol,mode) => {
         API_Key: API_Virus_Total,
     });
     console.warn("Virus Total response:", result);
+    if (result.error) {
+        console.error("Virus Total error:", result.error);
+        Update_Risk_Level("Virus_Total", 0);
+        return false;
+    }
 
     const Virus_Total_STATS = result.data.attributes.stats;
     const VT_Harmless = parseInt(Virus_Total_STATS.harmless);
@@ -487,20 +492,27 @@ async function Check_URL(url, link_text) {
 
 
     let virus_total_attempts = 0;
-    let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,1);
-    console.log("Virus total result:", virus_total_result);
-    while (!virus_total_result && virus_total_attempts < 5 && Risk_Level.Virus_Total != 0) {
-        virus_total_attempts++;
-        console.log("Virus total attempt:", virus_total_attempts);
-        virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,2);
-        console.log("Virus total result:", virus_total_result);
+    if (!API_Virus_Total || API_Virus_Total.length === 0 || API_Virus_Total == null || API_Virus_Total == false){
+        console.error("API_Virus_Total not found");
     }
+    else{
+        let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,1);
+        console.log("Virus total result:", virus_total_result);
+        while (!virus_total_result && virus_total_attempts < 5 && Risk_Level.Virus_Total != 0 && API_Virus_Total != false) {
+            virus_total_attempts++;
+            console.log("Virus total attempt:", virus_total_attempts);
+            virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,2);
+            console.log("Virus total result:", virus_total_result);
+        }
+    }
+    
     if (link_text == 'Image//Link//This//is//an//image//link') {
         Update_Risk_Level("Link_Text", 1); //no text likley an image link
     }
     else {
         Analyze_Link_Text(url_short, link_text, url_extended);
     }
+    
     console.log("leaving function");
     return Calculate_Risk_Level();
     

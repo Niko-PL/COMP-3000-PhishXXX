@@ -312,30 +312,36 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
     }
 
 }
-Inject_CSS = () => { //inject the css into the head of the document
-    
-    if (document.getElementById(Style_Name)){
-        console.log("CSS already injected/or exits with this name");
-        return;
+Inject_CSS = async() => { //inject the css into the head of the document
+    const existingStyle = document.getElementById(Style_Name);
+    if (existingStyle){
+        console.log("Removing existing CSS to apply updated settings");
+        existingStyle.remove();
     }
-    else {
+
+    const Cookie_Data = await new Promise((resolve) => {
+        chrome.storage.sync.get(resolve);
+    });
+
+    const Warning_Message_Size = Number(Cookie_Data.Warning_Message_Size) || 15;
+    const Word_Highlight_Colour = Cookie_Data.Word_Highlight_Colour || "#8b0000";
+    const URL_Highlight_Colour = Cookie_Data.URL_Highlight_Colour || "#ff00ea";
+
     const css = document.createElement('style');
     css.id = Style_Name;
     css.textContent = `
     .${BAD_WORDS_Class} {
-    background-color: darkred; 
+    background-color: ${Word_Highlight_Colour};
     color: white;}
-
-    
 
     .${WARNING_CLASS} {
     background-color: rgba(0, 0, 0, 0.64); 
-    color: rgb(255, 0, 0) ; 
+    color: rgb(255, 0, 0);
     padding: 2px; 
     border-radius: 2px; 
     margin-top: 2px; 
     margin-bottom: 2px; 
-    text-size: 15px;
+    font-size: ${Warning_Message_Size}px;
     text-align: center;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -349,12 +355,12 @@ Inject_CSS = () => { //inject the css into the head of the document
     .${WARNING_CLASS}.visible {
     opacity: 1;}
 
-
     .${URL_CLASS} {
-    background-color: rgba(255, 0, 234, 0.64); 
-    color: rgb(0, 0, 0)`;
+    background-color: ${URL_Highlight_Colour}; 
+    color: rgb(0, 0, 0);}
+    `;
 
-    (document.head || document.documentElement).appendChild(css); //append to head or document element (wichever is present)
+    (document.head || document.documentElement).appendChild(css);
     console.log("CSS injected");
     }
 
@@ -415,7 +421,7 @@ Scan_Email = async () => {
 }
 
 const MAIN = async () => {
-    Inject_CSS(); //we inject the css for highlt
+    await Inject_CSS(); //we inject the css for highlt
     const response = await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
     console.log("Alive_Hussar_API_Status:", response);
     
@@ -458,4 +464,3 @@ chrome.runtime.onMessage.addListener((Message, sender, sendResponse) => {
     }
     return false; //we respond synchronously so no need to keep the port open
 });
-}

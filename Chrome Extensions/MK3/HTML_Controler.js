@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
     const Hussar_API_Status = document.getElementById("Hussar_API_Status");
     const WHOIS_API_Status = document.getElementById("WHOIS_API_Status");
     const Virus_Total_API_Status = document.getElementById("Virus_Total_API_Status");
+
+    const Warning_Message_Size = document.getElementById("warning_message_size");
+    const Word_Highlight_Colour = document.getElementById("word_highlight_colour");
+    const URL_Highlight_Colour = document.getElementById("url_highlight_colour");
     
 
 
@@ -60,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
         const Virus_Total_API_KEY = document.getElementById("Virus_Total_API_KEY");
         const Virus_Total_API_KEY_Button = document.getElementById("Virus_Total_API_KEY_button");
 
-        const WHOIS_User = document.getElementById("WHOIS_USER");
+        const WHOIS_USER = document.getElementById("WHOIS_USER");
         const WHOIS_USER_Button = document.getElementById("WHOIS_USER_button");
 
 
@@ -125,6 +129,9 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             Use_Hussar_API: Use_Hussar_API.checked,
             Use_WHOIS_API: Use_WHOIS_API.checked,
             Use_Virus_Total_API: Use_Virus_Total_API.checked,
+            Warning_Message_Size: Warning_Message_Size.value,
+            Word_Highlight_Colour: Word_Highlight_Colour.value,
+            URL_Highlight_Colour: URL_Highlight_Colour.value,
         }
 
 
@@ -175,13 +182,24 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             //Clear_Sheet.checked = Cookie_Data.Clear_Sheet || false;
             //Time_Range.value = Cookie_Data.Time_Range || "7";
 
+            console.log("BEFORE " + Cookie_Data.Warning_Message_Size);
+            console.log("BEFORE " + Cookie_Data.Word_Highlight_Colour);
+            console.log("BEFORE " + Cookie_Data.URL_Highlight_Colour);
+
             Highlight_On_Open.checked = Cookie_Data.Highlight_On_Open || false;
             Use_AI.checked = Cookie_Data.Use_AI || false;
             Use_Hussar_API.checked = Cookie_Data.Use_Hussar_API || false;
             Use_WHOIS_API.checked = Cookie_Data.Use_WHOIS_API || false;
             Use_Virus_Total_API.checked = Cookie_Data.Use_Virus_Total_API || false;
-            Use_Language_Processing.checked = Cookie_Data.Use_Language_Processing || false;
+            Warning_Message_Size.value = Cookie_Data.Warning_Message_Size || 15;
+            Word_Highlight_Colour.value = Cookie_Data.Word_Highlight_Colour || "#8b0000";
+            URL_Highlight_Colour.value = Cookie_Data.URL_Highlight_Colour || "#ff00ea";
             
+            console.log("AFTER " + Warning_Message_Size.value);
+            console.log("AFTER " + Word_Highlight_Colour.value);
+            console.log("AFTER " + URL_Highlight_Colour.value);
+            document.getElementById("warning_size_label").textContent = Warning_Message_Size.value;
+
             if (Cookie_Data.WHOIS_USER != null && Cookie_Data.WHOIS_USER != '') {
                 WHOIS_USER.value = 'API User Loaded Successfully';
             }
@@ -202,6 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             else {
                 Virus_Total_API_KEY.value = 'No virus total api key please enter a valid value';
             }
+
         });
     }
 
@@ -225,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
                     currentVal === 'API Key failed to load' ||
                     currentVal === 'Please enter a valid Value'
                 ) {
-                    // Show the real key ONLY if not already shown
+                    
                     if (currentVal !== cookieValue) {
                         item.element.value = cookieValue;
                     }
@@ -568,19 +587,25 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
 
         const endpoint = `https://jsonwhoisapi.com/api/v1/whois?identifier=google.com`;
         const new_key = `${WHOIS_USER}:${WHOISJSON_API_KEY}`;
-        const response = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-            "Authorization": `Basic ${btoa(new_key)}`,
-            "Accept": "application/json"
+        try{
+            const response = await fetch(endpoint, {
+            method: "GET",
+            headers: {
+                "Authorization": `Basic ${btoa(new_key)}`,
+                "Accept": "application/json"
+            }
+            });
+            if (!response.ok) {
+                throw new Error(`jsonwhoisapi.com request failed (${response.status} ${response.statusText})`);
+            }
+            else{
+                Update_Status("WHOIS JSON API is Online", true, true);
+                Change_Status_Text("WHOIS_API_Status", "Online");
+            }
         }
-        });
-        if (!response.ok) {
-            throw new Error(`jsonwhoisapi.com request failed (${response.status} ${response.statusText})`);
-        }
-        else{
-            Update_Status("WHOIS JSON API is Online", true, true);
-            Change_Status_Text("WHOIS_API_Status", "Online");
+        catch (error) {
+            Update_Status("WHOIS JSON API is Offline", true, true);
+            Change_Status_Text("WHOIS_API_Status", "Offline");
         }
 
         Update_Status("All API's checked Ready for Action", true, true);
@@ -712,6 +737,15 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
     Virus_Total_API_KEY_Looker.addEventListener("click", () => API_Controller(1));
     WHOISJSON_API_KEY_Looker.addEventListener("click", () => API_Controller(0));
     WHOIS_USER_Looker.addEventListener("click", () => API_Controller(2));
+
+
+    Warning_Message_Size.addEventListener("change", Save_Settings);
+    Warning_Message_Size.addEventListener("input", () => {
+        document.getElementById("warning_size_label").textContent = Warning_Message_Size.value;
+    });
+
+    Word_Highlight_Colour.addEventListener("change", Save_Settings);
+    URL_Highlight_Colour.addEventListener("change", Save_Settings);
     
     console.log("Buttons and status loaded and event listeners added");
     Update_Status("--READY FOR ACTION--", true, true);
