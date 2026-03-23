@@ -218,22 +218,22 @@ const Analyze_Virus_Total = async (url,API_Virus_Total, url_protocol,mode) => {
     const VT_Undetected = parseInt(Virus_Total_STATS.undetected);
 
     try {
-    if (VT_Malicious > 0) {
+    if (VT_Malicious >= 2) {
         console.warn("Virus Total is malicious");
         Update_Risk_Level("Virus_Total", 5);
         return true;
     }
-    else if (VT_Suspicious > 0) {
+    else if (VT_Suspicious >= 2) {
         console.warn("Virus Total is suspicious");
         Update_Risk_Level("Virus_Total", 3);
         return true;
     }
-    else if (VT_Harmless > 0) {
+    else if (VT_Harmless >= 2) {
         console.warn("Virus Total is harmless");
         Update_Risk_Level("Virus_Total", 1);
         return true;
     }
-    else if (VT_Undetected > 0) {
+    else if (VT_Undetected >= 2) {
         console.warn("Virus Total is undetected");
         Update_Risk_Level("Virus_Total", 2);
         return true;
@@ -427,14 +427,26 @@ const Access_Cookies_API = () => {  //get the cookies api key for who is
 
 
 // CHECK URL FUNCTION (MAIN FUNCTION)
-async function Check_URL(url, link_text) {
+async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Virus_Total_API) {
+    console.log("Checking URL with API selected inside check_url.js");
+    console.log("Use_Hussar_API:", Use_Hussar_API);
+    console.log("Use_WHOIS_API:", Use_WHOIS_API);
+    console.log("Use_Virus_Total_API:", Use_Virus_Total_API);
+    
     console.warn("CHECKING_URL.JS:", url);
     console.log("Link text:", link_text);
 
     // Reset URL starts fresh 
     Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0 };
 
-    let url_extended = await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains (we wnat final destitinaton url)
+    let url_extended = null;
+    if (Use_Hussar_API) {
+        url_extended = await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains (we wnat final destitinaton url)
+    }
+    else {
+        console.log("No Hussar API selected");
+        url_extended = url;
+    }
 
     if (url_extended == null) {
         console.error("No URL extended likley due to server down found massive error");
@@ -448,10 +460,6 @@ async function Check_URL(url, link_text) {
           
     }
     
-    if (url_extended == null) {
-        console.error("No URL extended found using original url");
-        url_extended = url;
-    }
 
 
     const API_Keys = await Access_Cookies_API();
@@ -469,12 +477,17 @@ async function Check_URL(url, link_text) {
 
     let whois_data = null;
     try{
-    whois_data = await Get_WHOIS_Data(url_short, WHOIS_USER, API_WHOISJSON);
+        if (Use_WHOIS_API) {
+        whois_data = await Get_WHOIS_Data(url_short, WHOIS_USER, API_WHOISJSON);
+        }
+        else {
+            console.error("No WHOIS API selected");
+        }
     }
     catch (error) {
         console.error("Error getting WHOIS data:", error);
     }
-    if (whois_data != null) {
+    if (whois_data != null && Use_WHOIS_API) {
         console.log("WHOIS data found");
         try{
             await Analyze_WHOIS_Data(whois_data,url_tld,url_redirects);
@@ -494,6 +507,9 @@ async function Check_URL(url, link_text) {
     let virus_total_attempts = 0;
     if (!API_Virus_Total || API_Virus_Total.length === 0 || API_Virus_Total == null || API_Virus_Total == false){
         console.error("API_Virus_Total not found");
+    }
+    else if (!Use_Virus_Total_API) {
+        console.log("No Virus Total API selected");
     }
     else{
         let virus_total_result = await Analyze_Virus_Total(url_short, API_Virus_Total, url_protocol,1);

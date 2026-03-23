@@ -45,13 +45,14 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
         //const Clear_Sheet = document.getElementById("clear_sheet");
         //const Time_Range = document.getElementById("time_range");
 
+        //special selection setttings
         const Highlight_On_Open = document.getElementById("highlight_on_open");
-        
         const Use_AI = document.getElementById("use_ai");
         const Use_Hussar_API = document.getElementById("use_hussar_api");
         const Use_WHOIS_API = document.getElementById("use_whois_api");
         const Use_Virus_Total_API = document.getElementById("use_virustotal_api");
-        const Use_Language_Processing = document.getElementById("use_language_processing");
+ 
+        
 
 
         // test section data loaded
@@ -208,6 +209,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             Warning_Message_Size.value = Cookie_Data.Warning_Message_Size || 15;
             Word_Highlight_Colour.value = Cookie_Data.Word_Highlight_Colour || "#8b0000";
             URL_Highlight_Colour.value = Cookie_Data.URL_Highlight_Colour || "#ff00ea";
+
+            console.log("Highlight on open post settings load:", Highlight_On_Open.checked);
             
             console.log("AFTER " + Warning_Message_Size.value);
             console.log("AFTER " + Word_Highlight_Colour.value);
@@ -240,7 +243,9 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
                 Virus_Total_API_KEY.placeholder = 'No virus total api key please enter a valid value';
             }
 
+            console.log("Settings fucntion fully executed and settings loaded");
         });
+       
     }
 
     
@@ -718,9 +723,11 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
     console.log("Buttons and status loaded and event listeners added");
     Update_Status("--READY FOR ACTION--", true, true);
 
-    Load_Settings();
+    // put code after this if it requires stuff to be loaded first (dumbaah)
+    Load_Settings();   
     console.log("Settings loaded");
     console.log("WHOIS JSON API key after loading settings:", WHOISJSON_API_KEY.value);
+    
     
     try {
         console.log("Updating API status");

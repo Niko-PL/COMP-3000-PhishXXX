@@ -237,7 +237,7 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
     });
 }
 
- Highlight_Url_HREF = async (body) => {
+ Highlight_Url_HREF = async (body, Use_Hussar_API, Use_WHOIS_API, Use_Virus_Total_API) => {
     //console.warn("Highlight_Url_HREF: body", body);
     if (!body || body.length === 0 || body == null) {
         console.log("Highlight_Url_HREF: no body supplied");
@@ -287,7 +287,18 @@ Highlight_Words = (body,regex) => { //body == Email_Body <.a3s>
         
             console.log("Found link from href:", link_href);
 
-            let risk = await Check_URL(link_href, link_text);
+            let risk = null;
+            if (Use_Hussar_API || Use_WHOIS_API || Use_Virus_Total_API) {
+                console.log("Checking URL with API selected");
+                console.log("Use_Hussar_API:", Use_Hussar_API);
+                console.log("Use_WHOIS_API:", Use_WHOIS_API);
+                console.log("Use_Virus_Total_API:", Use_Virus_Total_API);
+                risk = await Check_URL(link_href, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Virus_Total_API);
+            }
+            else {
+                console.error("No API selected");
+                
+            }
 
 
             if (risk == null || risk == undefined) {
@@ -411,7 +422,20 @@ Scan_Email = async () => {
             return "Error highlighting words";
         }
 
-        Highlight_Url_HREF(Email_Body);
+        chrome.storage.sync.get((data) => {
+            const Use_Hussar_API = data.Use_Hussar_API;
+            const Use_WHOIS_API = data.Use_WHOIS_API;
+            const Use_Virus_Total_API = data.Use_Virus_Total_API;
+
+
+
+            if (Use_Hussar_API || Use_WHOIS_API || Use_Virus_Total_API) {
+                Highlight_Url_HREF(Email_Body, Use_Hussar_API, Use_WHOIS_API, Use_Virus_Total_API);
+            }
+            else {
+                console.error("No API selected");
+            }
+        });
     }
     else {
         console.log("Email Body not found");
