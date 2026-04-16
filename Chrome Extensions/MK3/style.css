@@ -261,3 +261,30 @@ input:checked + .slider:before {
   max-width: 320px;
   box-sizing: border-box;
 }
+
+.warning-message-help {
+  position: relative;
+  display: inline-block;
+}
+
+#warning_message_test {
+  display: inline-block;
+  border: 2px solid #000;
+  cursor: help;
+}
+
+#warning_message_preview {
+  position: center;
+  bottom: 100%;
+  left: 0;
+  display: none;
+  padding: 4px 6px;
+  background-color: #fff;
+  border: 1px solid #000;
+  white-space: nowrap;
+}
+
+.warning-message-help:hover #warning_message_preview,
+.warning-message-help:focus-within #warning_message_preview   {
+  display: block;
+}

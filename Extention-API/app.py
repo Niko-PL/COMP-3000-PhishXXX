@@ -142,7 +142,7 @@ def extend_url():
 
 
 @app.route('/test', methods=['GET'])
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def test():
     cient_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
     print(f"/test ping from IP: {cient_ip}")

@@ -2,7 +2,7 @@
 // as the CORS policy blocks it running in Check_url ffs
 // should be a background worker and apear in extention as so (liitle red)
 
-const DEFAULT_API_URL = "http://192.168.204.1:5443";
+const DEFAULT_API_URL = "http://10.233.55.162:5443";
 
 
 const fetchJsonOrThrow = async (url, options = {}) => {
@@ -23,7 +23,8 @@ const fetchJsonOrThrow = async (url, options = {}) => {
     const error = new Error(message);
     error.status = response.status;
     error.data = data;
-    throw error;
+    console.error("Error during fetch operation:", error);
+    return { error: error.message || "Error during fetch operation" };
   }
 
   return data || {};

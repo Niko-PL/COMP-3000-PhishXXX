@@ -526,7 +526,12 @@ async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Viru
         Update_Risk_Level("Link_Text", 1); //no text likley an image link
     }
     else {
-        Analyze_Link_Text(url_short, link_text, url_extended);
+        try{
+            Analyze_Link_Text(url_short, link_text, url_extended);
+        }
+        catch (error) {
+            console.error("Error analyzing link text:", error);
+        }
     }
     
     console.log("leaving function");

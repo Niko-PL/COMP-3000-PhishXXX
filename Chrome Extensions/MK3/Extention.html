@@ -8,8 +8,8 @@
     <div class="in-line">
       <img id="logo" src="images/Hussar_Mk2.png" alt="Hussar MK2 Logo">
       <h3>Phish-Hussar Mk3</h3>
-      <button type="button" class="settings-button" id="settings_button" aria-expanded="false">&#9881;</button>
-      <button type="button" class="settings-button" id="security_button" aria-expanded="false">&#128737;</button>
+      <button type="button" class="settings-button" id="settings_button" aria-expanded="false">&#x2699;</button>
+      <button type="button" class="settings-button" id="security_button" aria-expanded="false">&#128274;</button>
     </div>
 
     
@@ -82,8 +82,12 @@
 
 
       <div class="settings-container">
-        <label>Warning Message Size (<span id="warning_size_label">15</span>px)</label>
+        <label>Warning Message Size (<span id="warning_message_label">15</span>px)</label>
         <input type="range" id="warning_message_size" min="8" max="28" value="15">
+        <div class="warning-message-help">
+          <span id="warning_message_test" tabindex="0" aria-label="Preview warning style">Test Warning (Hover to see)</span>
+          <div id="warning_message_preview" role="tooltip" aria-hidden="true">Mock Sentence</div>
+        </div>
       </div>
 
       <div class="settings-container">

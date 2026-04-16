@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
     const Warning_Message_Size = document.getElementById("warning_message_size");
     const Word_Highlight_Colour = document.getElementById("word_highlight_colour");
     const URL_Highlight_Colour = document.getElementById("url_highlight_colour");
-    
+    const Warning_Message_Preview = document.getElementById("warning_message_preview");
+    const Warning_Message_Test = document.getElementById("warning_message_test");
 
 
         //load all the buttones for main ui
@@ -109,6 +110,15 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             return;
         }
 
+    };
+
+    const Update_Warning_Size_Preview = () => {
+        if (!Warning_Message_Preview || !Warning_Message_Size || !Word_Highlight_Colour) {
+            return;
+        }
+        Warning_Message_Preview.textContent = "Mock Sentence";
+        Warning_Message_Preview.style.fontSize = `${Warning_Message_Size.value}px`;
+        Warning_Message_Preview.style.color = Word_Highlight_Colour.value;
     };
 
 
@@ -215,7 +225,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
             console.log("AFTER " + Warning_Message_Size.value);
             console.log("AFTER " + Word_Highlight_Colour.value);
             console.log("AFTER " + URL_Highlight_Colour.value);
-            document.getElementById("warning_size_label").textContent = Warning_Message_Size.value;
+            document.getElementById("warning_message_label").textContent = Warning_Message_Size.value;
+            Update_Warning_Size_Preview();
 
             // Keep real API values in storage only; use placeholder for load status.
             WHOIS_USER.value = "";
@@ -714,10 +725,14 @@ document.addEventListener('DOMContentLoaded', async () => { // Ensure the extern
 
     Warning_Message_Size.addEventListener("change", Save_Settings);
     Warning_Message_Size.addEventListener("input", () => {
-        document.getElementById("warning_size_label").textContent = Warning_Message_Size.value;
+        document.getElementById("warning_message_label").textContent = Warning_Message_Size.value;
+        Update_Warning_Size_Preview();
+
+        //endo of main here
     });
 
     Word_Highlight_Colour.addEventListener("change", Save_Settings);
+    Word_Highlight_Colour.addEventListener("input", Update_Warning_Size_Preview);
     URL_Highlight_Colour.addEventListener("change", Save_Settings);
     
     console.log("Buttons and status loaded and event listeners added");
