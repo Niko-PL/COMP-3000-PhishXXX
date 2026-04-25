@@ -5,12 +5,13 @@ const Bad_Endings = [".exe", ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"
 
 
 
-const GDPR_Country_TLDs = [".at",".be",".bg",".hr",".cy",".cz",".dk",".ee",".fi",".fr",".de",".gr",".hu",".ie",".it",".lv",".lt",".lu",".mt",".nl",".pl",".pt",".ro",".sk",".si",".es",".se",".is",".li",".no",".eu",".uk",".com",".org",".edu",".tv"];
+
+const GDPR_Country_TLDs = [".at",".be",".bg",".hr",".cy",".cz",".dk",".ee",".fi",".fr",".de",".gr",".hu",".ie",".it",".lv",".lt",".lu",".mt",".nl",".pl",".pt",".ro",".sk",".si",".es",".se",".is",".li",".no",".eu",".uk",".com",".org",".edu",".tv", ".store"];
 //and tuvalu country for tv as in televesion
 
 const Risk_Classification = { 1: "No Risk", 2: "Low Risk", 3: "Medium Risk", 4: "High Risk", 5: "Very High Risk" };
 
-let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0 };
+let Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0, "Typosquatting": 0 };
 
 const Update_Risk_Level = (Risk, Level) => {
     console.log("Updating Risk Level:", Risk, Level);
@@ -62,18 +63,24 @@ const Verify_URL = (url) => {  // not secure not good
     console.log("URL data:", url_data);
 
     if (url_data && url_data.index !== undefined) {
-        const url_tld = url_data[0]; // The matched TLD (e.g., ".com")
+        const url_tld = url_data[0]; // The matched TLD (.com, .net, .org, etc.)
         console.log("URL TLD:", url_tld);
         const tld_index = url_data.index; // The index where the TLD was found
 
         const url_short = url.substring(0, tld_index + url_tld.length);
         const url_redirects = url.substring(tld_index + url_tld.length);
 
+       const parts = url_short.split(".");
+       const domain_name = parts[parts.length -2]; //get the domain from the url
+
+
+        
+
         console.log("URL after trimming to ending:", url_short);
         console.log("URL redirects:", url_redirects);
         console.log("URL TLD:", url_tld);
 
-        return { url_short, url_redirects, url_tld, url_protocol };
+        return { url_short, url_redirects, url_tld, url_protocol, domain_name };
     } else {
         console.error("No URL ending found. Incorrect URL:", url);
         return;
@@ -261,9 +268,9 @@ const Analyze_Link_Text = (url_href, url_text, url_extended) => {
     console.log("Analyzing link text:", url_text);
     console.log("Analyzing link extended:", url_extended);
     
-    const {url_short: url_href_verified, url_redirects: url_href_redirects, url_tld: url_href_tld} = Verify_URL(url_href) // original url short
-    const {url_short: url_extended_verified, url_redirects: url_extended_redirects, url_tld: url_extended_tld} = Verify_URL(url_extended) //extended url short
-    const {url_short: url_text_verified, url_redirects: url_text_redirects, url_tld: url_text_tld} = Verify_URL(url_text) //text url short
+    const {url_short: url_href_verified, url_redirects: url_href_redirects, url_tld: url_href_tld, domain_name: url_href_domain_name} = Verify_URL(url_href) // original url short
+    const {url_short: url_extended_verified, url_redirects: url_extended_redirects, url_tld: url_extended_tld, domain_name: url_extended_domain_name} = Verify_URL(url_extended) //extended url short
+    const {url_short: url_text_verified, url_redirects: url_text_redirects, url_tld: url_text_tld, domain_name: url_text_domain_name} = Verify_URL(url_text) //text url short
 
     console.log("Href short verified:", url_href_verified);
     console.log("Extended short verified:", url_extended_verified);
@@ -357,11 +364,12 @@ const TEST_URL_Chain_Redirects = async (url) => {
 }*/
 
 
-const Analyze_URL = (URL_TLD,URL_Redirects) => {
+const Analyze_URL = (URL_TLD,URL_Redirects,Domain_Name) => {
     console.log("Analyzing URL:", URL_TLD, URL_Redirects);
     Analyze_TLD(URL_TLD);
     Analyze_Paths(URL_Redirects);
     console.log("URL analyzed");
+    Anaylze_Typosquatting(Domain_Name);
 }
 
 // WHO IS DATA GET AND ANALYZE
@@ -426,6 +434,9 @@ const Access_Cookies_API = () => {  //get the cookies api key for who is
 
 
 
+
+// CHECK URL FUNCTION (MAIN FUNCTION)
+//#########################################################
 // CHECK URL FUNCTION (MAIN FUNCTION)
 async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Virus_Total_API) {
     console.log("Checking URL with API selected inside check_url.js");
@@ -439,7 +450,7 @@ async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Viru
     // Reset URL starts fresh 
     Risk_Level = { "Protocol": 0, "Age": 0, Expiration_Date: 0, "TLD": 0, "Redirects": 0, "Virus_Total": 0, "Link_Text": 0, "URL_Chain_Redirects": 0 };
 
-    let url_extended = null;
+    let url_extended = url;
     if (Use_Hussar_API) {
         url_extended = await Analyze_URL_Chain_Redirects(url); // check if the url redirects to websites of other domains (we wnat final destitinaton url)
     }
@@ -448,19 +459,33 @@ async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Viru
         url_extended = url;
     }
 
-    if (url_extended == null) {
+    console.log (url, " this us the url")
+    console.log (url_extended, " this us the url extended")
+    if (url_extended == "" || url_extended == null || url_extended == undefined) {
         console.error("No URL extended likley due to server down found massive error");
         const server_alive = await chrome.runtime.sendMessage({action: "Alive_Hussar_API"});
         if (server_alive) {
             url_extended = await Analyze_URL_Chain_Redirects(url);
+            if (url_extended == null || url_extended == "" || url_extended == undefined) {
+                url_extended = url;
+                console.error("Retry also returned null, falling back to original URL");
+            }
         }
         else {
-            console.error("Server is not alive")
+            url_extended = url;
+            console.error("Server is not alive or error occured using orignally supplied url")
+            
         }
           
     }
-    
 
+
+
+    if (url_extended == "" || url_extended == null || url_extended == undefined) {
+        console.error("No URL extended likley due to server down found massive error");
+  
+        
+    }
 
     const API_Keys = await Access_Cookies_API();
     const WHOIS_USER = API_Keys[2];
@@ -469,11 +494,12 @@ async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Viru
     console.log("API_Keys:", API_WHOISJSON + " " + API_Virus_Total + " " + WHOIS_USER);
     
 
-    const {url_short, url_redirects, url_tld, url_protocol} = Verify_URL(url_extended) || {};
+    const {url_short, url_redirects, url_tld, url_protocol, domain_name} = Verify_URL(url_extended) || {};
     console.log("Normalised URL:", url_short);
     console.log("URL Redirects:", url_redirects);
     console.log("URL TLD:", url_tld);
     console.log("URL protocol:", url_protocol);
+    console.log("Domain name:", domain_name);
 
     let whois_data = null;
     try{
@@ -501,7 +527,7 @@ async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Viru
         console.error("No WHOIS data found");
     }
 
-    Analyze_URL(url_tld,url_redirects);
+    Analyze_URL(url_tld,url_redirects,domain_name);
 
 
     let virus_total_attempts = 0;
@@ -543,3 +569,300 @@ async function Check_URL(url, link_text, Use_Hussar_API, Use_WHOIS_API, Use_Viru
 }
 
 
+// CHECK URL FUNCTION (MAIN FUNCTION)
+//#########################################################
+// CHECK URL FUNCTION (MAIN FUNCTION)
+
+function Levenshtein_Distance(str1, str2) {
+    const dp = Array.from({ length: str1.length + 1 }, () =>
+      new Array(str2.length + 1).fill(0)
+    );
+  
+    for (let i = 0; i <= str1.length; i++) {
+      for (let j = 0; j <= str2.length; j++) {
+        if (i === 0) {
+          dp[i][j] = j;
+        } else if (j === 0) {
+          dp[i][j] = i;
+        } else {
+          dp[i][j] = Math.min(
+            dp[i - 1][j - 1] + (str1[i - 1] === str2[j - 1] ? 0 : 1), // replace
+            dp[i - 1][j] + 1,  // delete
+            dp[i][j - 1] + 1   // insert
+          );
+        }
+      }
+    }
+  
+    return dp[str1.length][str2.length];
+  }
+  
+
+
+const Anaylze_Typosquatting = (Website_Name) => {
+    console.log("Analyzing typosquatting for:", Website_Name);
+
+    const website_name = Website_Name.toLowerCase();
+
+    let mindistance;
+
+    let risk = 0;
+
+
+
+    for (const website of Fuzzy_Company_List) {
+        if (website_name == website) {
+            console.log("Website name is real");
+            Update_Risk_Level("Typosquatting", 1);
+            return;
+                
+        }
+        
+        const distance = Levenshtein_Distance(website_name, website);
+        console.log("Distance between website name and website:", distance);
+        if (distance < mindistance) {
+            mindistance = distance;
+        }
+
+        const risk_ratio = mindistance / website_name.length;
+        if (risk_ratio < 0.2) {
+            if (risk < 5) {
+                risk = 5;
+            }
+        }
+        else if (risk_ratio < 0.4) {
+            if (risk < 4) {
+                risk = 4;
+            }
+        }
+        else if (risk_ratio < 0.6) {
+            if (risk < 3) {
+                risk = 3;
+            }
+        }
+        else if (risk_ratio < 0.8) {
+            if (risk < 2) {
+                risk = 2;
+            }
+        }
+        else {
+            if (risk < 1) {
+                risk = 1;
+            }
+        }
+
+            
+    }
+    Update_Risk_Level("Typosquatting", risk);
+}
+
+
+
+
+
+
+// end of code bellow only the list of companies 
+const Fuzzy_Company_List = [
+    "accuweather",
+    "adidas",
+    "adobe",
+    "airbnb",
+    "aliexpress",
+    "amazon",
+    "amazonaws",
+    "amd",
+    "apple",
+    "archive",
+    "asana",
+    "babbel",
+    "baidu",
+    "bandcamp",
+    "bbc",
+    "bestbuy",
+    "bing",
+    "bit",
+    "bloomberg",
+    "booking",
+    "britannica",
+    "canva",
+    "cdc",
+    "chatgpt",
+    "cloudflare",
+    "cnn",
+    "costco",
+    "coursera",
+    "crunchyroll",
+    "dailymail",
+    "dailymotion",
+    "deezer",
+    "dev",
+    "discord",
+    "disneyplus",
+    "dropbox",
+    "duckduckgo",
+    "duolingo",
+    "ebay",
+    "edx",
+    "espn",
+    "etsy",
+    "expedia",
+    "facebook",
+    "fifa",
+    "figma",
+    "forbes",
+    "funimation",
+    "futurelearn",
+    "github",
+    "githubusercontent",
+    "gitlab",
+    "glassdoor",
+    "goodreads",
+    "google",
+    "gov",
+    "hbomax",
+    "healthline",
+    "hm",
+    "homedepot",
+    "hulu",
+    "ibm",
+    "imdb",
+    "indeed",
+    "independent",
+    "instagram",
+    "intel",
+    "kayak",
+    "khanacademy",
+    "last",
+    "linkedin",
+    "linktr",
+    "live",
+    "mediafire",
+    "medium",
+    "mega",
+    "memrise",
+    "merriam-webster",
+    "microsoft",
+    "msn",
+    "nasa",
+    "nationalrail",
+    "nba",
+    "netflix",
+    "nfl",
+    "nike",
+    "notion",
+    "npmjs",
+    "nvidia",
+    "nytimes",
+    "office",
+    "openai",
+    "oracle",
+    "outlook",
+    "paramountplus",
+    "paypal",
+    "peacocktv",
+    "pinterest",
+    "primevideo",
+    "pypi",
+    "python",
+    "qualcomm",
+    "quizlet",
+    "quora",
+    "railcard",
+    "realtor",
+    "reddit",
+    "reuters",
+    "roblox",
+    "rottentomatoes",
+    "shop",
+    "shopify",
+    "sky",
+    "skyscanner",
+    "slack",
+    "soundcloud",
+    "spacex",
+    "spotify",
+    "stackoverflow",
+    "steam",
+    "steamcommunity",
+    "stripe",
+    "taobao",
+    "target",
+    "telegraph",
+    "tesla",
+    "theguardian",
+    "tiktok",
+    "tinyurl",
+    "trello",
+    "tripadvisor",
+    "twitch",
+    "twitter",
+    "uber",
+    "udemy",
+    "uefa",
+    "uniqlo",
+    "vimeo",
+    "walmart",
+    "weather",
+    "weibo",
+    "whatsapp",
+    "who",
+    "wikipedia",
+    "wix",
+    "wordpress",
+    "yahoo",
+    "yandex",
+    "youtube",
+    "zara",
+    "zillow",
+    "zoom",
+    "jpmorganchase",
+    "bankofamerica",
+    "hsbc",
+    "rbc",
+    "icbc-ltd",
+    "wellsfargo",
+    "morganstanley",
+    "mufg",
+    "ccb",
+    "td",
+    "citigroup",
+    "goldmansachs",
+    "santander",
+    "bnpparibas",
+    "abchina",
+    "boc",
+    "ubs",
+    "barclays",
+    "commbank",
+    "bbva",
+    "lloydsbank",
+    "sc",
+    "natwest",
+    "ing",
+    "unicredit",
+    "db",
+    "dbs",
+    "hdfcbank",
+    "kbfg",
+    "shinhan",
+    "mizuho",
+    "smfg",
+    "bmo",
+    "scotiabank",
+    "cibc",
+    "nab",
+    "westpac",
+    "ocbc",
+    "caixabank",
+    "seb",
+    "swedbank",
+    "sbi",
+    "anz",
+    "credit-agricole",
+    "intesasanpaolo",
+    "usbank",
+    "pnc",
+    "truist",
+    "capitalone",
+    "kbc"
+  ];

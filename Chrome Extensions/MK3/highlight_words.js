@@ -140,6 +140,7 @@ Word_Regex = async (email) => {
     console.warn("Word_Regex: Sending message to background worker");
 
     const result = await chrome.runtime.sendMessage({action: "URL-API-Background-3", email_words_list: email});
+   // const result = await Email_Risk_MAIN(email);
     console.warn("URL API test data:", result);
     if (result.error) {  
         console.error("Error during fetch operation:", result.error);
