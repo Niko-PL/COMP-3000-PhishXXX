@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Phish-Hussar Mk3</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="in-line">
+      <img id="logo" src="images/Hussar_Mk2.png" alt="Hussar MK2 Logo">
+      <h3>Phish-Hussar Mk3</h3>
+      <button type="button" class="settings-button" id="settings_button" aria-expanded="false">&#x2699;</button>
+      <button type="button" class="settings-button" id="security_button" aria-expanded="false">&#128274;</button>
+    </div>
+
+    
+
+    <div id="security_section" class="security-section-hidden" aria-hidden="true">
+      <h5>Security Settings</h5>
+      <div class="settings-container">
+        <label>Highlight on Open</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="highlight_on_open">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
+      </div>
+
+      <div class="settings-container">
+        <label>Use Hussar API</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_hussar_api">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
+      </div>
+
+
+
+      <div class="settings-container">
+        <label>WHOIS API</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_whois_api">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
+      </div>
+
+
+      <div class="settings-container">
+        <label>VirusTotal API</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_virustotal_api">
+            <span class="slider round"></span>
+          </label>
+          <h4 class="switch_text_right">YES</h4>
+        </div>
+      </div>
+
+
+      <div class="settings-container">
+        <label>Use Language Processing for Highlighting</label>
+        <div class="switch-row">
+          <h4 class="switch_text_left">NO</h4>
+          <label class="switch">
+            <input type="checkbox" id="use_ai">
+            <span class="slider round"></span>
+            </label>
+            <h4 class="switch_text_right">YES</h4>
+        </div>
+      </div>
+
+
+      <div class="settings-container">
+        <label>Warning Message Size (<span id="warning_message_label">15</span>px)</label>
+        <input type="range" id="warning_message_size" min="8" max="28" value="15">
+        <div class="warning-message-help">
+          <span id="warning_message_test" tabindex="0" aria-label="Preview warning style">Test Warning (Hover to see)</span>
+          <div id="warning_message_preview" role="tooltip" aria-hidden="true">Mock Sentence</div>
+        </div>
+      </div>
+
+      <div class="settings-container">
+        <label>Highlighted Word Colour</label>
+        <input type="color" id="word_highlight_colour" value="#8b0000">
+      </div>
+
+      <div class="settings-container">
+        <label>URL Highlight Colour</label>
+        <input type="color" id="url_highlight_colour" value="#ff00ea">
+      </div>
+      
+    </div>
+    
+    
+    <div id= settings_section class="settings-section-hidden" aria-hidden="true" >
+      <h5>Keep empty for defaults</h5>
+
+      <label> WHOIS API User:</label>
+      
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <input type="text" id="WHOIS_USER" placeholder="Enter WHOIS API User" title="WHOIS API User Paste Here"/>
+        <button type="button" id="WHOIS_USER_Looker" title="View API User">&#x1F441;</button>
+      </div>
+
+      <button type="button" id="WHOIS_USER_button" aria-expanded="false">Set API User</button>
+      
+      
+
+      <label> WHOIS JSON API Key:</label>
+      
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <input type="text" id="WHOISJSON_API_KEY" placeholder="Enter WHOIS JSON API Key" title="WHOIS JSON API Key Paste Here"/>
+        <button type="button" id="WHOISJSON_API_KEY_Looker" title="View API Key">&#x1F441;</button>
+      </div>
+
+      <button type="button" id="WHOISJSON_API_KEY_button" aria-expanded="false">Set API Key</button>
+
+      <label> Virus Total API Key:</label>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <input type="text" id="Virus_Total_API_KEY" placeholder="Enter Virus Total API Key" title="Virus Total API Key Paste Here"/>
+        <button type="button" id="Virus_Total_API_KEY_Looker" title="View API Key">&#x1F441;</button>
+      </div>
+      
+      <button type="button" id="Virus_Total_API_KEY_button" aria-expanded="false">Set API Key</button>
+      
+      
+    </div>
+
+    <div class="status-container">
+      <div class="status-container-item">
+        <span>Hussar Status</span>
+        <span id="Hussar_API_Status" class="status"> Offline</span>
+      </div>
+      <div class="status-container-item"> 
+        <span>WHOIS Status</span>
+        <span id="WHOIS_API_Status" class="status"> Offline</span>
+      </div>
+      <div class="status-container-item"> 
+        <span>VirusTotal Status</span>
+        <span id="Virus_Total_API_Status" class="status"> Offline</span>
+      </div>
+    </div>
+
+
+    <button id="run_highlighter">Highlight Words</button>
+    
+    <p id="status"></p>
+    <script src="SECRETS.js"></script>
+    <script src="check_url.js"></script>
+    <script src="HTML_Controler.js"></script>
+
+
+  </body>
+</html>
+
+<!-- HERE IS THE OLD CODE FOR THE SETTINGS SECTION
+<button id="run_scraper">Scrape Emails</button>
+<button id="run_getHTML">RUN_GET_HTML_BUTTON</button>
+<label> Sheet ID:</label>
+<input type="text" id="sheetId" placeholder="Enter Google Sheet ID"/>
+
+<label>Time Range:</label>
+      <select id="time_range">
+        <option value="1">1 day (24h)</option>
+        <option value="7">1 week</option>
+        <option value="14">2 weeks</option>
+        <option value="30">1 month</option>
+        <option value="90">3 months</option>
+        <option value="180">6 months</option>
+        <option value="365">1 year</option>
+        <option value="0">All time</option>
+      </select>
+      <label><input type="checkbox" id="clear_sheet"> Clear previous data</label>
+
+<label>Sheet Name:</label>
+      <input type="text" id="sheet_name" placeholder="Enter sheet name">
+      
+      <label>Number of Emails Recorded:</label>
+      <input type="number" id="emails_recorded" min="1" max="1000000" placeholder="Enter number of emails to record"/>
+
+<div id="test_section" class="test-section-hidden" aria-hidden="true">
+      <h5>Test Section</h5>
+      <input type="text" id="URL_input" placeholder="example https://example.com">
+      <button type="button" id="URL_check_button" aria-expanded="false">Check</button>
+    </div>
+
+
+
+
+
+-->

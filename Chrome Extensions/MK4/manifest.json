@@ -1,0 +1,55 @@
+{
+"manifest_version": 3,
+  "name": "Phish-Hussar MK4",
+  "description": "Version MK4 1.0 ",
+  "version": "1.0",
+  "icons": {
+    "16": "images/Hussar_Mk2.png",
+    "32": "images/Hussar_Mk2.png",
+    "48": "images/Hussar_Mk2.png",
+    "64": "images/Hussar_Mk2.png",
+    "128": "images/Hussar_Mk2.png",
+    "256": "images/Hussar_Mk2.png"
+  },
+  "permissions": ["tabs", "storage", "scripting", "activeTab"],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "https://www.virustotal.com/*",
+    "http://localhost:5443/*",
+    "http://192.168.204.1:5443/*",
+    "http://10.233.55.162:5443/*"
+  ],
+  "background": {
+    "service_worker": "BackGround_WORKER.js"
+    
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "ngram risk scores/phishing_language_2gram.csv",
+        "ngram risk scores/phishing_language_1gram.csv"
+      ],
+      "matches": ["https://mail.google.com/*"]
+    }
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["test.js","Bad_Words_List.js","Warnings_List.js","check_url.js","highlight_words.js", "email_risk.js"]
+    }
+  ],
+  "action": 
+  {
+    "default_popup": "Extention.html",
+    "default_title": "Phish-Hussar Mk3",
+    "default_icon": {
+      "16": "images/Guard_MK1.png",
+      "32": "images/Guard_MK1.png",
+      "48": "images/Guard_MK1.png",
+      "64": "images/Guard_MK1.png",
+      "128": "images/Guard_MK1.png",
+      "256": "images/Guard_MK1.png"
+    }
+  }
+}
